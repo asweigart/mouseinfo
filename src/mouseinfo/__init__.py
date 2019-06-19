@@ -13,7 +13,7 @@ __version__ = '0.0.1'
 # Alternatively, this code makes this application not dependent on PyAutoGUI
 # by copying the code for the position() and screenshot() functions into this
 # source code file.
-import sys, platform, datetime, subprocess, os, pymsgbox
+import sys, platform, datetime, subprocess, os, pymsgbox, pyperclip
 from PIL import Image, ImageGrab
 
 if sys.platform == 'win32':
@@ -53,10 +53,6 @@ if sys.platform == 'win32':
         return (ctypes.windll.user32.GetSystemMetrics(0), ctypes.windll.user32.GetSystemMetrics(1))
     size = _winSize
 
-    def _winGetScale():
-        return ctypes.windll.shcore.GetScaleFactorForDevice(0)
-    getScale = _winGetScale
-
 elif sys.platform == 'darwin':
     try:
         import Quartz
@@ -89,10 +85,6 @@ elif sys.platform == 'darwin':
     def _macSize():
         return Quartz.CGDisplayPixelsWide(Quartz.CGMainDisplayID()), Quartz.CGDisplayPixelsHigh(Quartz.CGMainDisplayID())
     size = _macSize
-
-    def _macGetScale():
-        pass
-    getScale = _macGetScale
 
 elif platform.system() == 'Linux':
     from Xlib.display import Display
@@ -144,15 +136,9 @@ elif platform.system() == 'Linux':
     def _linuxSize():
         return _display.screen().width_in_pixels, _display.screen().height_in_pixels
     size = _linuxSize
-
-    def _linuxGetScale():
-        pass
-    getScale = _linuxGetScale
 # =========================================================================
 
-import sys, pyperclip
 RUNNING_PYTHON_2 = sys.version_info[0] == 2
-
 if RUNNING_PYTHON_2:
     import Tkinter as tkinter
     #from Tkinter import Tk as ttk
