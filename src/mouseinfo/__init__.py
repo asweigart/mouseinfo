@@ -5,7 +5,7 @@ __version__ = '0.0.1'
 
 # =========================================================================
 # This code make this application dependent on PyAutoGUI being installed:
-#from pyautogui import position, screenshot
+#from pyautogui import position, screenshot, size
 # =========================================================================
 # Alternatively, this code makes this application not dependent on PyAutoGUI
 # by copying the code for the position() and screenshot() functions into this
@@ -36,6 +36,10 @@ if sys.platform == 'win32':
         return im
     screenshot = _winScreenshot
 
+    def _winSize():
+        return (ctypes.windll.user32.GetSystemMetrics(0), ctypes.windll.user32.GetSystemMetrics(1))
+    size = _winSize
+
 elif sys.platform == 'darwin':
     try:
         import Quartz
@@ -60,6 +64,10 @@ elif sys.platform == 'darwin':
         os.unlink(tmpFilename)
         return im
     screenshot = _macScreenshot
+
+    def _macSize():
+        return Quartz.CGDisplayPixelsWide(Quartz.CGMainDisplayID()), Quartz.CGDisplayPixelsHigh(Quartz.CGMainDisplayID())
+    size = _macSize
 
 elif platform.system() == 'Linux':
     from Xlib.display import Display
@@ -103,6 +111,10 @@ elif platform.system() == 'Linux':
         else:
             raise Exception('The scrot program must be installed to take a screenshot with PyScreeze on Linux. Run: sudo apt-get install scrot')
     screenshot = _linuxScreenshot
+
+    def _linuxSize():
+        return _display.screen().width_in_pixels, _display.screen().height_in_pixels
+    size = _linuxSize
 # =========================================================================
 
 import sys, pyperclip
@@ -116,6 +128,8 @@ else:
     import tkinter
     from tkinter import ttk
 
+MOUSE_INFO_BUTTON_WIDTH = 14 # A standard width for the buttons in the Mouse Info window.
+
 # While G_MOUSE_INFO_RUNNING is True, the text fields in the Mouse Info
 # window will be updated:
 G_MOUSE_INFO_RUNNING = False
@@ -125,21 +139,34 @@ def _updateMouseInfoTextFields():
 
     # Get the XY coordinates of the current mouse position:
     x, y = position()
-    G_MOUSE_INFO_XY_INFO.set('%s, %s' % (x, y))
+    G_MOUSE_INFO_XY_INFO.set('%s,%s' % (x, y))
 
-    # Get the RGB color value of the pixel currently undr the mouse:
-    r, g, b = screenshot().getpixel((x, y))
-    G_MOUSE_INFO_RGB_INFO.set('%s, %s, %s' % (r, g, b))
+    # Mouse Info currently only works on the primary monitor, and doesn't
+    # support multi-monitor setups. The color information isn't reliable
+    # when the mouse is not on the primary monitor, so display an error instead.
+    width, height = size()
+    if not (0 <= x < width and 0 <= y < height):
+        G_MOUSE_INFO_RGB_INFO.set('NA_on_multimonitor_setups')
+    else:
+        # Get the RGB color value of the pixel currently under the mouse:
+        r, g, b = screenshot().getpixel((x, y))
+        G_MOUSE_INFO_RGB_INFO.set('%s,%s,%s' % (r, g, b))
 
-    # Convert this RGB value into a hex RGB value:
-    rHex = hex(r)[2:].upper().rjust(2, '0')
-    gHex = hex(g)[2:].upper().rjust(2, '0')
-    bHex = hex(b)[2:].upper().rjust(2, '0')
-    hexColor = '#%s%s%s' % (rHex, gHex, bHex)
-    G_MOUSE_INFO_RGB_HEX_INFO.set(hexColor)
+    if not (0 <= x < width and 0 <= y < height):
+        G_MOUSE_INFO_RGB_HEX_INFO.set('NA_on_multimonitor_setups')
+    else:
+        # Convert this RGB value into a hex RGB value:
+        rHex = hex(r)[2:].upper().rjust(2, '0')
+        gHex = hex(g)[2:].upper().rjust(2, '0')
+        bHex = hex(b)[2:].upper().rjust(2, '0')
+        hexColor = '#%s%s%s' % (rHex, gHex, bHex)
+        G_MOUSE_INFO_RGB_HEX_INFO.set(hexColor)
 
-    # Update the color panel:
-    G_MOUSE_INFO_COLOR_FRAME.configure(background=hexColor)
+    if not (0 <= x < width and 0 <= y < height):
+        G_MOUSE_INFO_COLOR_FRAME.configure(background='black')
+    else:
+        # Update the color panel:
+        G_MOUSE_INFO_COLOR_FRAME.configure(background=hexColor)
 
     # As long as the global G_MOUSE_INFO_RUNNING variable is True,
     # schedule this function to be called again in 20 milliseconds.
@@ -174,6 +201,41 @@ def _copyRgbHexMouseInfo(*args):
     pyperclip.copy(G_MOUSE_INFO_RGB_HEX_INFO.get())
 
 
+def _copyAllMouseInfo(*args):
+    # Copy the contents of the XY coordinate and RGB color text fields in the
+    # Mouse Info window to the log text field.
+    textFieldContents = '%s %s %s' % (G_MOUSE_INFO_XY_INFO.get(),
+                                      G_MOUSE_INFO_RGB_INFO.get(),
+                                      G_MOUSE_INFO_RGB_HEX_INFO.get())
+    pyperclip.copy(textFieldContents)
+
+def _logXyMouseInfo(*args):
+    # Log the contents of the XY coordinate text field in the Mouse Info
+    # window to the log text field.
+    pass
+
+
+def _logRgbMouseInfo(*args):
+    # Log the contents of the RGB color text field in the Mouse Info
+    # window to the log text field.
+    pass
+
+
+def _logRgbHexMouseInfo(*args):
+    # Log the contents of the RGB hex color text field in the Mouse Info
+    # window to the log text field.
+    pass
+
+
+def _logAllMouseInfo(*args):
+    # Log the contents of the XY coordinate and RGB color text fields in the
+    # Mouse Info window to the log text field.
+    textFieldContents = '%s %s %s' % (G_MOUSE_INFO_XY_INFO.get(),
+                                  G_MOUSE_INFO_RGB_INFO.get(),
+                                  G_MOUSE_INFO_RGB_HEX_INFO.get())
+
+
+
 def mouseInfo():
     """Launches the Mouse Info window, which displays XY coordinate and RGB
     color information for the mouse's current position.
@@ -203,6 +265,19 @@ def mouseInfo():
     mainframe.columnconfigure(0, weight=1)
     mainframe.rowconfigure(0, weight=1)
 
+    # Set up the instructional text label:
+    ttk.Label(mainframe, text="(TODO instructional\ntext here)").grid(column=1, row=1, sticky=tkinter.W)
+
+    # Set up the button to copy the XY coordinates to the clipboard:
+    xyCopyButton = ttk.Button(mainframe, text="Copy All", width=MOUSE_INFO_BUTTON_WIDTH, command=_copyAllMouseInfo)
+    xyCopyButton.grid(column=3, row=1, sticky=tkinter.W)
+    xyCopyButton.bind('<Return>', _copyAllMouseInfo)
+
+    # Set up the button to copy the XY coordinates to the clipboard:
+    xyCopyButton = ttk.Button(mainframe, text="Log All", width=MOUSE_INFO_BUTTON_WIDTH, command=_logAllMouseInfo)
+    xyCopyButton.grid(column=4, row=1, sticky=tkinter.W)
+    xyCopyButton.bind('<Return>', _logAllMouseInfo)
+
     # Set up the variables for the content of the Mouse Info window's text fields:
     G_MOUSE_INFO_XY_INFO = tkinter.StringVar()
     G_MOUSE_INFO_RGB_INFO = tkinter.StringVar()
@@ -210,42 +285,57 @@ def mouseInfo():
 
     # Set up the XY coordinate text field and label:
     G_MOUSE_INFO_XY_INFO_entry = ttk.Entry(mainframe, width=16, textvariable=G_MOUSE_INFO_XY_INFO)
-    G_MOUSE_INFO_XY_INFO_entry.grid(column=2, row=1, sticky=(tkinter.W, tkinter.E))
-    ttk.Label(mainframe, text="XY Position").grid(column=1, row=1, sticky=tkinter.W)
+    G_MOUSE_INFO_XY_INFO_entry.grid(column=2, row=2, sticky=(tkinter.W, tkinter.E))
+    ttk.Label(mainframe, text="XY Position").grid(column=1, row=2, sticky=tkinter.W)
 
     # Set up the button to copy the XY coordinates to the clipboard:
-    xyButton = ttk.Button(mainframe, text="Copy XY", width=14, command=_copyXyMouseInfo)
-    xyButton.grid(column=3, row=1, sticky=tkinter.W)
-    xyButton.bind('<Return>', _copyXyMouseInfo)
+    xyCopyButton = ttk.Button(mainframe, text="Copy XY", width=MOUSE_INFO_BUTTON_WIDTH, command=_copyXyMouseInfo)
+    xyCopyButton.grid(column=3, row=2, sticky=tkinter.W)
+    xyCopyButton.bind('<Return>', _copyXyMouseInfo)
+
+    # Set up the button to log the XY coordinates:
+    xyLogButton = ttk.Button(mainframe, text="Log XY", width=MOUSE_INFO_BUTTON_WIDTH, command=_logXyMouseInfo)
+    xyLogButton.grid(column=4, row=2, sticky=tkinter.W)
+    xyLogButton.bind('<Return>', _logXyMouseInfo)
 
     # Set up the RGB color text field and label:
     G_MOUSE_INFO_RGB_INFO_entry = ttk.Entry(mainframe, width=16, textvariable=G_MOUSE_INFO_RGB_INFO)
-    G_MOUSE_INFO_RGB_INFO_entry.grid(column=2, row=2, sticky=(tkinter.W, tkinter.E))
-    ttk.Label(mainframe, text="RGB Color").grid(column=1, row=2, sticky=tkinter.W)
+    G_MOUSE_INFO_RGB_INFO_entry.grid(column=2, row=3, sticky=(tkinter.W, tkinter.E))
+    ttk.Label(mainframe, text="RGB Color").grid(column=1, row=3, sticky=tkinter.W)
 
     # Set up the button to copy the RGB color to the clipboard:
-    rgbButton = ttk.Button(mainframe, text="Copy RGB", width=14, command=_copyRgbMouseInfo)
-    rgbButton.grid(column=3, row=2, sticky=tkinter.W)
-    rgbButton.bind('<Return>', _copyRgbMouseInfo)
+    rgbCopyButton = ttk.Button(mainframe, text="Copy RGB", width=MOUSE_INFO_BUTTON_WIDTH, command=_copyRgbMouseInfo)
+    rgbCopyButton.grid(column=3, row=3, sticky=tkinter.W)
+    rgbCopyButton.bind('<Return>', _copyRgbMouseInfo)
+
+    # Set up the button to log the XY coordinates:
+    rgbLogButton = ttk.Button(mainframe, text="Log RGB", width=MOUSE_INFO_BUTTON_WIDTH, command=_logRgbMouseInfo)
+    rgbLogButton.grid(column=4, row=3, sticky=tkinter.W)
+    rgbLogButton.bind('<Return>', _logRgbMouseInfo)
 
     # Set up the RGB hex color text field and label:
     G_MOUSE_INFO_RGB_HEX_INFO_entry = ttk.Entry(mainframe, width=16, textvariable=G_MOUSE_INFO_RGB_HEX_INFO)
-    G_MOUSE_INFO_RGB_HEX_INFO_entry.grid(column=2, row=3, sticky=(tkinter.W, tkinter.E))
-    ttk.Label(mainframe, text="RGB As Hex").grid(column=1, row=3, sticky=tkinter.W)
+    G_MOUSE_INFO_RGB_HEX_INFO_entry.grid(column=2, row=4, sticky=(tkinter.W, tkinter.E))
+    ttk.Label(mainframe, text="RGB As Hex").grid(column=1, row=4, sticky=tkinter.W)
 
     # Set up the button to copy the RGB hex color to the clipboard:
-    rgbHexButton = ttk.Button(mainframe, text="Copy RGB Hex", width=14, command=_copyRgbHexMouseInfo)
-    rgbHexButton.grid(column=3, row=3, sticky=tkinter.W)
-    rgbHexButton.bind('<Return>', _copyRgbHexMouseInfo)
+    rgbHexCopyButton = ttk.Button(mainframe, text="Copy RGB Hex", width=MOUSE_INFO_BUTTON_WIDTH, command=_copyRgbHexMouseInfo)
+    rgbHexCopyButton.grid(column=3, row=4, sticky=tkinter.W)
+    rgbHexCopyButton.bind('<Return>', _copyRgbHexMouseInfo)
+
+    # Set up the button to log the XY coordinates:
+    rgbHexLogButton = ttk.Button(mainframe, text="Log RGB Hex", width=MOUSE_INFO_BUTTON_WIDTH, command=_logRgbHexMouseInfo)
+    rgbHexLogButton.grid(column=4, row=4, sticky=tkinter.W)
+    rgbHexLogButton.bind('<Return>', _logRgbHexMouseInfo)
 
     # Set up the frame that displays the color of the pixel currently under the mouse cursor:
     G_MOUSE_INFO_COLOR_FRAME = tkinter.Frame(mainframe, width=50, height = 50)
-    G_MOUSE_INFO_COLOR_FRAME.grid(column=2, row=4, sticky=(tkinter.W, tkinter.E))
-    ttk.Label(mainframe, text="Color").grid(column=1, row=4, sticky=tkinter.W)
+    G_MOUSE_INFO_COLOR_FRAME.grid(column=2, row=5, sticky=(tkinter.W, tkinter.E))
+    ttk.Label(mainframe, text="Color").grid(column=1, row=5, sticky=tkinter.W)
 
     # Add padding to all of the widgets:
     for child in mainframe.winfo_children():
-        child.grid_configure(padx=5, pady=5)
+        child.grid_configure(padx=3, pady=3)
 
     G_MOUSE_INFO_XY_INFO_entry.focus() # Put the focus on the XY coordinate text field to start.
 
