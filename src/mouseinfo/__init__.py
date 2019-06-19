@@ -209,31 +209,49 @@ def _copyAllMouseInfo(*args):
                                       G_MOUSE_INFO_RGB_HEX_INFO.get())
     pyperclip.copy(textFieldContents)
 
+
+def _scrollToBottomOfLogTextArea():
+    topOfTextArea, bottomOfTextArea = G_MOUSE_INFO_LOG_TEXT_AREA.yview()
+    G_MOUSE_INFO_LOG_TEXT_AREA.yview_moveto(bottomOfTextArea)
+
+
 def _logXyMouseInfo(*args):
     # Log the contents of the XY coordinate text field in the Mouse Info
     # window to the log text field.
-    pass
+    logContents = G_MOUSE_INFO_LOG_INFO.get() + '%s\n' % (G_MOUSE_INFO_XY_INFO.get())
+    G_MOUSE_INFO_LOG_INFO.set(logContents)
+    G_MOUSE_INFO_LOG_TEXT_AREA.replace("1.0", tkinter.END, logContents)
+    _scrollToBottomOfLogTextArea()
 
 
 def _logRgbMouseInfo(*args):
     # Log the contents of the RGB color text field in the Mouse Info
     # window to the log text field.
-    pass
+    logContents = G_MOUSE_INFO_LOG_INFO.get() + '%s\n' % (G_MOUSE_INFO_RGB_INFO.get())
+    G_MOUSE_INFO_LOG_INFO.set(logContents)
+    G_MOUSE_INFO_LOG_TEXT_AREA.replace("1.0", tkinter.END, logContents)
+    _scrollToBottomOfLogTextArea()
 
 
 def _logRgbHexMouseInfo(*args):
     # Log the contents of the RGB hex color text field in the Mouse Info
     # window to the log text field.
-    pass
+    logContents = G_MOUSE_INFO_LOG_INFO.get() + '%s\n' % (G_MOUSE_INFO_RGB_HEX_INFO.get())
+    G_MOUSE_INFO_LOG_INFO.set(logContents)
+    G_MOUSE_INFO_LOG_TEXT_AREA.replace("1.0", tkinter.END, logContents)
+    _scrollToBottomOfLogTextArea()
 
 
 def _logAllMouseInfo(*args):
     # Log the contents of the XY coordinate and RGB color text fields in the
     # Mouse Info window to the log text field.
     textFieldContents = '%s %s %s' % (G_MOUSE_INFO_XY_INFO.get(),
-                                  G_MOUSE_INFO_RGB_INFO.get(),
-                                  G_MOUSE_INFO_RGB_HEX_INFO.get())
-
+                                      G_MOUSE_INFO_RGB_INFO.get(),
+                                      G_MOUSE_INFO_RGB_HEX_INFO.get())
+    logContents = G_MOUSE_INFO_LOG_INFO.get() + '%s\n' % (textFieldContents)
+    G_MOUSE_INFO_LOG_INFO.set(logContents)
+    G_MOUSE_INFO_LOG_TEXT_AREA.replace("1.0", tkinter.END, logContents)
+    _scrollToBottomOfLogTextArea()
 
 
 def mouseInfo():
@@ -245,7 +263,7 @@ def mouseInfo():
     Technical note: This function is not thread-safe and uses global variables.
     It's meant to be called once at a time."""
 
-    global G_MOUSE_INFO_RUNNING, G_MOUSE_INFO_ROOT, G_MOUSE_INFO_XY_INFO, G_MOUSE_INFO_RGB_INFO, G_MOUSE_INFO_RGB_HEX_INFO, G_MOUSE_INFO_COLOR_FRAME
+    global G_MOUSE_INFO_RUNNING, G_MOUSE_INFO_ROOT, G_MOUSE_INFO_XY_INFO, G_MOUSE_INFO_RGB_INFO, G_MOUSE_INFO_RGB_HEX_INFO, G_MOUSE_INFO_COLOR_FRAME, G_MOUSE_INFO_LOG_TEXT_AREA, G_MOUSE_INFO_LOG_INFO
 
     G_MOUSE_INFO_RUNNING = True # While True, the text fields will update.
 
@@ -265,8 +283,10 @@ def mouseInfo():
     mainframe.columnconfigure(0, weight=1)
     mainframe.rowconfigure(0, weight=1)
 
+    # WIDGETS ON ROW 1:
+
     # Set up the instructional text label:
-    ttk.Label(mainframe, text="(TODO instructional\ntext here)").grid(column=1, row=1, sticky=tkinter.W)
+    ttk.Label(mainframe, text='Tab over the buttons and press Enter to\n"click" them as you move the mouse around.').grid(column=1, row=1, sticky=tkinter.W)
 
     # Set up the button to copy the XY coordinates to the clipboard:
     xyCopyButton = ttk.Button(mainframe, text="Copy All", width=MOUSE_INFO_BUTTON_WIDTH, command=_copyAllMouseInfo)
@@ -282,6 +302,9 @@ def mouseInfo():
     G_MOUSE_INFO_XY_INFO = tkinter.StringVar()
     G_MOUSE_INFO_RGB_INFO = tkinter.StringVar()
     G_MOUSE_INFO_RGB_HEX_INFO = tkinter.StringVar()
+    G_MOUSE_INFO_LOG_INFO = tkinter.StringVar()
+
+    # WIDGETS ON ROW 2:
 
     # Set up the XY coordinate text field and label:
     G_MOUSE_INFO_XY_INFO_entry = ttk.Entry(mainframe, width=16, textvariable=G_MOUSE_INFO_XY_INFO)
@@ -298,6 +321,8 @@ def mouseInfo():
     xyLogButton.grid(column=4, row=2, sticky=tkinter.W)
     xyLogButton.bind('<Return>', _logXyMouseInfo)
 
+    # WIDGETS ON ROW 3:
+
     # Set up the RGB color text field and label:
     G_MOUSE_INFO_RGB_INFO_entry = ttk.Entry(mainframe, width=16, textvariable=G_MOUSE_INFO_RGB_INFO)
     G_MOUSE_INFO_RGB_INFO_entry.grid(column=2, row=3, sticky=(tkinter.W, tkinter.E))
@@ -312,6 +337,8 @@ def mouseInfo():
     rgbLogButton = ttk.Button(mainframe, text="Log RGB", width=MOUSE_INFO_BUTTON_WIDTH, command=_logRgbMouseInfo)
     rgbLogButton.grid(column=4, row=3, sticky=tkinter.W)
     rgbLogButton.bind('<Return>', _logRgbMouseInfo)
+
+    # WIDGETS ON ROW 4:
 
     # Set up the RGB hex color text field and label:
     G_MOUSE_INFO_RGB_HEX_INFO_entry = ttk.Entry(mainframe, width=16, textvariable=G_MOUSE_INFO_RGB_HEX_INFO)
@@ -328,14 +355,35 @@ def mouseInfo():
     rgbHexLogButton.grid(column=4, row=4, sticky=tkinter.W)
     rgbHexLogButton.bind('<Return>', _logRgbHexMouseInfo)
 
+    # WIDGETS ON ROW 5:
+
     # Set up the frame that displays the color of the pixel currently under the mouse cursor:
-    G_MOUSE_INFO_COLOR_FRAME = tkinter.Frame(mainframe, width=50, height = 50)
+    G_MOUSE_INFO_COLOR_FRAME = tkinter.Frame(mainframe, width=50, height=50)
     G_MOUSE_INFO_COLOR_FRAME.grid(column=2, row=5, sticky=(tkinter.W, tkinter.E))
     ttk.Label(mainframe, text="Color").grid(column=1, row=5, sticky=tkinter.W)
 
+    # WIDGETS ON ROW 6:
+
+    # Set up the multiline text widget where the log info appears:
+    G_MOUSE_INFO_LOG_TEXT_AREA = tkinter.Text(mainframe, width=20, height=6)
+    G_MOUSE_INFO_LOG_TEXT_AREA.grid(column=1, row=6, columnspan=4, sticky=(tkinter.W, tkinter.E, tkinter.N, tkinter.S))
+    G_MOUSE_INFO_LOG_TEXT_AREA_SCROLLBAR = ttk.Scrollbar(mainframe, orient=tkinter.VERTICAL, command=G_MOUSE_INFO_LOG_TEXT_AREA.yview)
+    G_MOUSE_INFO_LOG_TEXT_AREA_SCROLLBAR.grid(column=5, row=6, sticky=(tkinter.N, tkinter.S))
+    G_MOUSE_INFO_LOG_TEXT_AREA['yscrollcommand'] = G_MOUSE_INFO_LOG_TEXT_AREA_SCROLLBAR.set
+
+    # WIDGETS ON ROW 7:
+
+
     # Add padding to all of the widgets:
     for child in mainframe.winfo_children():
-        child.grid_configure(padx=3, pady=3)
+        # Ensure the scrollbar and text area don't have padding in between them:
+        if child == G_MOUSE_INFO_LOG_TEXT_AREA_SCROLLBAR:
+            child.grid_configure(padx=0, pady=3)
+        elif child == G_MOUSE_INFO_LOG_TEXT_AREA:
+            child.grid_configure(padx=(3, 0), pady=3)
+        else:
+            # All other widgets have a standard padding of 3:
+            child.grid_configure(padx=3, pady=3)
 
     G_MOUSE_INFO_XY_INFO_entry.focus() # Put the focus on the XY coordinate text field to start.
 
