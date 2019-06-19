@@ -1,5 +1,8 @@
 # Mouse Info by Al Sweigart al@inventwithpython.com
 
+# Note: how to specify where a tkintr window opens:
+# https://stackoverflow.com/questions/14910858/how-to-specify-where-a-tkinter-window-opens
+
 __version__ = '0.0.1'
 
 
@@ -15,6 +18,14 @@ from PIL import Image, ImageGrab
 
 if sys.platform == 'win32':
     import ctypes
+
+    # Fixes the scaling issues where PyAutoGUI was reporting the wrong resolution:
+    try:
+       ctypes.windll.user32.SetProcessDPIAware()
+    except AttributeError:
+        pass # Windows XP doesn't support this, so just do nothing.
+
+
     class POINT(ctypes.Structure):
         _fields_ = [("x", ctypes.c_long),
                     ("y", ctypes.c_long)]
@@ -39,6 +50,10 @@ if sys.platform == 'win32':
     def _winSize():
         return (ctypes.windll.user32.GetSystemMetrics(0), ctypes.windll.user32.GetSystemMetrics(1))
     size = _winSize
+
+    def _winGetScale():
+        return ctypes.windll.shcore.GetScaleFactorForDevice(0)
+    getScale = _winGetScale
 
 elif sys.platform == 'darwin':
     try:
@@ -68,6 +83,10 @@ elif sys.platform == 'darwin':
     def _macSize():
         return Quartz.CGDisplayPixelsWide(Quartz.CGMainDisplayID()), Quartz.CGDisplayPixelsHigh(Quartz.CGMainDisplayID())
     size = _macSize
+
+    def _macGetScale():
+        pass
+    getScale = _macGetScale
 
 elif platform.system() == 'Linux':
     from Xlib.display import Display
@@ -115,6 +134,10 @@ elif platform.system() == 'Linux':
     def _linuxSize():
         return _display.screen().width_in_pixels, _display.screen().height_in_pixels
     size = _linuxSize
+
+    def _linuxGetScale():
+        pass
+    getScale = _linuxGetScale
 # =========================================================================
 
 import sys, pyperclip
@@ -178,7 +201,7 @@ def _updateMouseInfoTextFields():
     # You can reproduce it by moving this if-else code to the top of this
     # function.
     if G_MOUSE_INFO_RUNNING:
-        G_MOUSE_INFO_ROOT.after(20, _updateMouseInfoTextFields)
+        G_MOUSE_INFO_ROOT.after(100, _updateMouseInfoTextFields)
     else:
         return # Mouse Info window has been closed, so return immediately.
 
