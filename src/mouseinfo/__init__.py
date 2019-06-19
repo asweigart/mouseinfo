@@ -4,16 +4,20 @@
 # https://stackoverflow.com/questions/14910858/how-to-specify-where-a-tkinter-window-opens
 
 __version__ = '0.0.1'
-
+import pymsgbox, pyperclip, sys, os
 
 # =========================================================================
-# This code make this application dependent on PyAutoGUI being installed:
+# Originally, these functions were pulled in from PyAutoGUI. However, to
+# make this module independent of PyAutoGUI, the code for these functions
+# has been copy/pasted into the following section:
+# NOTE: Any bug fixes for these functions in PyAutoGUI will have to be
+# manually merged into MouseInfo.
 #from pyautogui import position, screenshot, size
 # =========================================================================
 # Alternatively, this code makes this application not dependent on PyAutoGUI
 # by copying the code for the position() and screenshot() functions into this
 # source code file.
-import sys, platform, datetime, subprocess, os, pymsgbox, pyperclip
+import platform, datetime, subprocess
 from PIL import Image, ImageGrab
 
 if sys.platform == 'win32':
