@@ -123,13 +123,6 @@ G_MOUSE_INFO_RUNNING = False
 def _updateMouseInfoTextFields():
     # Update the XY and RGB text fields in the Mouse Info window.
 
-    # As long as the global G_MOUSE_INFO_RUNNING variable is True,
-    # schedule this function to be called again in 20 milliseconds.
-    if G_MOUSE_INFO_RUNNING:
-        G_MOUSE_INFO_ROOT.after(20, _updateMouseInfoTextFields)
-    else:
-        return # Mouse Info window has been closed, so return immediately.
-
     # Get the XY coordinates of the current mouse position:
     x, y = position()
     G_MOUSE_INFO_XY_INFO.set('%s, %s' % (x, y))
@@ -147,6 +140,20 @@ def _updateMouseInfoTextFields():
 
     # Update the color panel:
     G_MOUSE_INFO_COLOR_FRAME.configure(background=hexColor)
+
+    # As long as the global G_MOUSE_INFO_RUNNING variable is True,
+    # schedule this function to be called again in 20 milliseconds.
+    # NOTE: Previously this if-else code was at the top of the function
+    # so that I could avoid the "invalid command name" message that
+    # was popping up (this didn't work though), but it was also causing
+    # a weird bug where the text fields weren't populated until I moved
+    # the tkinter window. I have no idea why that behavior was happening.
+    # You can reproduce it by moving this if-else code to the top of this
+    # function.
+    if G_MOUSE_INFO_RUNNING:
+        G_MOUSE_INFO_ROOT.after(20, _updateMouseInfoTextFields)
+    else:
+        return # Mouse Info window has been closed, so return immediately.
 
 
 def _copyXyMouseInfo(*args):
