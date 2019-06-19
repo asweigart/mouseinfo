@@ -4,7 +4,7 @@
 # https://stackoverflow.com/questions/14910858/how-to-specify-where-a-tkinter-window-opens
 
 __version__ = '0.0.1'
-import pymsgbox, pyperclip, sys, os
+import pymsgbox, pyperclip, sys, os, platform
 
 # =========================================================================
 # Originally, these functions were pulled in from PyAutoGUI. However, to
@@ -17,11 +17,12 @@ import pymsgbox, pyperclip, sys, os
 # Alternatively, this code makes this application not dependent on PyAutoGUI
 # by copying the code for the position() and screenshot() functions into this
 # source code file.
-import platform, datetime, subprocess
-from PIL import Image, ImageGrab
+import datetime, subprocess
+from PIL import Image
 
 if sys.platform == 'win32':
     import ctypes
+    from PIL import ImageGrab
 
     # Fixes the scaling issues where PyAutoGUI was reporting the wrong resolution:
     try:
@@ -148,8 +149,15 @@ if RUNNING_PYTHON_2:
     #from Tkinter import Tk as ttk
     ttk = tkinter
 else:
-    import tkinter
-    from tkinter import ttk
+    if platform.system() == 'Linux':
+        try:
+            import tkinter
+            from tkinter import ttk
+        except ImportError:
+            sys.exit("NOTE: You must install tkinter on Linux to use Mouse Info. Run the following: sudo apt-get install python3-tk python3-dev")
+    else:
+        import tkinter
+        from tkinter import ttk
 
 MOUSE_INFO_BUTTON_WIDTH = 14 # A standard width for the buttons in the Mouse Info window.
 
@@ -288,9 +296,9 @@ def _saveLogFile(*args):
         with open(G_MOUSE_INFO_LOG_FILENAME_INFO.get(), 'w') as fo:
             fo.write(G_MOUSE_INFO_LOG_INFO.get())
     except Exception as e:
-        pymsgbox.alert('ERROR: ' + str(e))
+        pymsgbox.alert('ERROR: ' + str(e), root=G_MOUSE_INFO_ROOT)
     else:
-        pymsgbox.alert('Log file saved.', 'Success')
+        pymsgbox.alert('Log file saved.', 'Success', root=G_MOUSE_INFO_ROOT)
 
 
 def _saveScreenshotFile(*args):
@@ -299,9 +307,9 @@ def _saveScreenshotFile(*args):
     try:
         screenshot(G_MOUSE_INFO_SCREENSHOT_FILENAME_INFO.get())
     except Exception as e:
-        pymsgbox.alert('ERROR: ' + str(e))
+        pymsgbox.alert('ERROR: ' + str(e), root=G_MOUSE_INFO_ROOT)
     else:
-        pymsgbox.alert('Screenshot file saved.', 'Success')
+        pymsgbox.alert('Screenshot file saved.', 'Success', root=G_MOUSE_INFO_ROOT)
 
 
 def mouseInfo():
