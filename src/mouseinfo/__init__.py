@@ -13,7 +13,7 @@ __version__ = '0.0.1'
 # Alternatively, this code makes this application not dependent on PyAutoGUI
 # by copying the code for the position() and screenshot() functions into this
 # source code file.
-import sys, platform, datetime, subprocess, os
+import sys, platform, datetime, subprocess, os, pymsgbox
 from PIL import Image, ImageGrab
 
 if sys.platform == 'win32':
@@ -37,11 +37,13 @@ if sys.platform == 'win32':
     position = _winPosition
 
 
-    def _winScreenshot():
+    def _winScreenshot(filename=None):
         # TODO - Use the winapi to get a screenshot, and compare performance with ImageGrab.grab()
         # https://stackoverflow.com/a/3586280/1893164
         try:
             im = ImageGrab.grab()
+            if filename is not None:
+                im.save(filename)
         except NameError:
             raise ImportError('Pillow module must be installed to use screenshot functions on Windows.')
         return im
@@ -68,15 +70,19 @@ elif sys.platform == 'darwin':
     position = _macPosition
 
 
-    def _macScreenshot():
-        tmpFilename = 'screenshot%s.png' % (datetime.datetime.now().strftime('%Y-%m%d_%H-%M-%S-%f'))
+    def _macScreenshot(filename):
+        if filename is not None:
+            tmpFilename = filename
+        else:
+            tmpFilename = 'screenshot%s.png' % (datetime.datetime.now().strftime('%Y-%m%d_%H-%M-%S-%f'))
         subprocess.call(['screencapture', '-x', tmpFilename])
         im = Image.open(tmpFilename)
 
         # force loading before unlinking, Image.open() is lazy
         im.load()
 
-        os.unlink(tmpFilename)
+        if filename is None:
+            os.unlink(tmpFilename)
         return im
     screenshot = _macScreenshot
 
@@ -112,11 +118,14 @@ elif platform.system() == 'Linux':
         return coord["root_x"], coord["root_y"]
     position = _linuxPosition
 
-    def _linuxScreenshot():
+    def _linuxScreenshot(filename=None):
         if not scrotExists:
             raise NotImplementedError('"scrot" must be installed to use screenshot functions in Linux. Run: sudo apt-get install scrot')
 
-        tmpFilename = '.screenshot%s.png' % (datetime.datetime.now().strftime('%Y-%m%d_%H-%M-%S-%f'))
+        if filename is not None:
+            tmpFilename = filename
+        else:
+            tmpFilename = '.screenshot%s.png' % (datetime.datetime.now().strftime('%Y-%m%d_%H-%M-%S-%f'))
 
         if scrotExists:
             subprocess.call(['scrot', tmpFilename])
@@ -125,7 +134,8 @@ elif platform.system() == 'Linux':
             # force loading before unlinking, Image.open() is lazy
             im.load()
 
-            os.unlink(tmpFilename)
+            if filename is None:
+                os.unlink(tmpFilename)
             return im
         else:
             raise Exception('The scrot program must be installed to take a screenshot with PyScreeze on Linux. Run: sudo apt-get install scrot')
@@ -192,7 +202,7 @@ def _updateMouseInfoTextFields():
         G_MOUSE_INFO_COLOR_FRAME.configure(background=hexColor)
 
     # As long as the global G_MOUSE_INFO_RUNNING variable is True,
-    # schedule this function to be called again in 20 milliseconds.
+    # schedule this function to be called again in 100 milliseconds.
     # NOTE: Previously this if-else code was at the top of the function
     # so that I could avoid the "invalid command name" message that
     # was popping up (this didn't work though), but it was also causing
@@ -277,6 +287,30 @@ def _logAllMouseInfo(*args):
     _scrollToBottomOfLogTextArea()
 
 
+def _saveLogFile(*args):
+    # Save the current contents of the log file text field. Automatically
+    # overwrites the file if it exists. Displays an error message in a
+    # pymsgbox alert box if there is a problem.
+    try:
+        with open(G_MOUSE_INFO_LOG_FILENAME_INFO.get(), 'w') as fo:
+            fo.write(G_MOUSE_INFO_LOG_INFO.get())
+    except Exception as e:
+        pymsgbox.alert('ERROR: ' + str(e))
+    else:
+        pymsgbox.alert('Log file saved.', 'Success')
+
+
+def _saveScreenshotFile(*args):
+    # Saves a screenshot. Automatically overwrites the file if it exists.
+    # Displays an error message in a pymsgbox alert box if there is a problem.
+    try:
+        screenshot(G_MOUSE_INFO_SCREENSHOT_FILENAME_INFO.get())
+    except Exception as e:
+        pymsgbox.alert('ERROR: ' + str(e))
+    else:
+        pymsgbox.alert('Screenshot file saved.', 'Success')
+
+
 def mouseInfo():
     """Launches the Mouse Info window, which displays XY coordinate and RGB
     color information for the mouse's current position.
@@ -286,7 +320,8 @@ def mouseInfo():
     Technical note: This function is not thread-safe and uses global variables.
     It's meant to be called once at a time."""
 
-    global G_MOUSE_INFO_RUNNING, G_MOUSE_INFO_ROOT, G_MOUSE_INFO_XY_INFO, G_MOUSE_INFO_RGB_INFO, G_MOUSE_INFO_RGB_HEX_INFO, G_MOUSE_INFO_COLOR_FRAME, G_MOUSE_INFO_LOG_TEXT_AREA, G_MOUSE_INFO_LOG_INFO
+    # TODO - we use too many globals, convert this program to use OOP.
+    global G_MOUSE_INFO_RUNNING, G_MOUSE_INFO_ROOT, G_MOUSE_INFO_XY_INFO, G_MOUSE_INFO_RGB_INFO, G_MOUSE_INFO_RGB_HEX_INFO, G_MOUSE_INFO_COLOR_FRAME, G_MOUSE_INFO_LOG_TEXT_AREA, G_MOUSE_INFO_LOG_INFO, G_MOUSE_INFO_LOG_FILENAME_INFO, G_MOUSE_INFO_SCREENSHOT_FILENAME_INFO
 
     G_MOUSE_INFO_RUNNING = True # While True, the text fields will update.
 
@@ -312,35 +347,37 @@ def mouseInfo():
     ttk.Label(mainframe, text='Tab over the buttons and press Enter to\n"click" them as you move the mouse around.').grid(column=1, row=1, sticky=tkinter.W)
 
     # Set up the button to copy the XY coordinates to the clipboard:
-    xyCopyButton = ttk.Button(mainframe, text="Copy All", width=MOUSE_INFO_BUTTON_WIDTH, command=_copyAllMouseInfo)
+    xyCopyButton = ttk.Button(mainframe, text='Copy All', width=MOUSE_INFO_BUTTON_WIDTH, command=_copyAllMouseInfo)
     xyCopyButton.grid(column=3, row=1, sticky=tkinter.W)
     xyCopyButton.bind('<Return>', _copyAllMouseInfo)
 
     # Set up the button to copy the XY coordinates to the clipboard:
-    xyCopyButton = ttk.Button(mainframe, text="Log All", width=MOUSE_INFO_BUTTON_WIDTH, command=_logAllMouseInfo)
+    xyCopyButton = ttk.Button(mainframe, text='Log All', width=MOUSE_INFO_BUTTON_WIDTH, command=_logAllMouseInfo)
     xyCopyButton.grid(column=4, row=1, sticky=tkinter.W)
     xyCopyButton.bind('<Return>', _logAllMouseInfo)
 
     # Set up the variables for the content of the Mouse Info window's text fields:
-    G_MOUSE_INFO_XY_INFO = tkinter.StringVar()
-    G_MOUSE_INFO_RGB_INFO = tkinter.StringVar()
-    G_MOUSE_INFO_RGB_HEX_INFO = tkinter.StringVar()
-    G_MOUSE_INFO_LOG_INFO = tkinter.StringVar()
+    G_MOUSE_INFO_XY_INFO                  = tkinter.StringVar() # The str contents of the xy text field.
+    G_MOUSE_INFO_RGB_INFO                 = tkinter.StringVar() # The str contents of the rgb text field.
+    G_MOUSE_INFO_RGB_HEX_INFO             = tkinter.StringVar() # The str contents of the rgb hex text field.
+    G_MOUSE_INFO_LOG_INFO                 = tkinter.StringVar() # The str contents of the log text area.
+    G_MOUSE_INFO_LOG_FILENAME_INFO        = tkinter.StringVar() # The str contents of the log filename text field.
+    G_MOUSE_INFO_SCREENSHOT_FILENAME_INFO = tkinter.StringVar() # The str contents of the screenshot filename text field.
 
     # WIDGETS ON ROW 2:
 
     # Set up the XY coordinate text field and label:
     G_MOUSE_INFO_XY_INFO_entry = ttk.Entry(mainframe, width=16, textvariable=G_MOUSE_INFO_XY_INFO)
     G_MOUSE_INFO_XY_INFO_entry.grid(column=2, row=2, sticky=(tkinter.W, tkinter.E))
-    ttk.Label(mainframe, text="XY Position").grid(column=1, row=2, sticky=tkinter.W)
+    ttk.Label(mainframe, text='XY Position').grid(column=1, row=2, sticky=tkinter.W)
 
     # Set up the button to copy the XY coordinates to the clipboard:
-    xyCopyButton = ttk.Button(mainframe, text="Copy XY", width=MOUSE_INFO_BUTTON_WIDTH, command=_copyXyMouseInfo)
+    xyCopyButton = ttk.Button(mainframe, text='Copy XY', width=MOUSE_INFO_BUTTON_WIDTH, command=_copyXyMouseInfo)
     xyCopyButton.grid(column=3, row=2, sticky=tkinter.W)
     xyCopyButton.bind('<Return>', _copyXyMouseInfo)
 
     # Set up the button to log the XY coordinates:
-    xyLogButton = ttk.Button(mainframe, text="Log XY", width=MOUSE_INFO_BUTTON_WIDTH, command=_logXyMouseInfo)
+    xyLogButton = ttk.Button(mainframe, text='Log XY', width=MOUSE_INFO_BUTTON_WIDTH, command=_logXyMouseInfo)
     xyLogButton.grid(column=4, row=2, sticky=tkinter.W)
     xyLogButton.bind('<Return>', _logXyMouseInfo)
 
@@ -349,15 +386,15 @@ def mouseInfo():
     # Set up the RGB color text field and label:
     G_MOUSE_INFO_RGB_INFO_entry = ttk.Entry(mainframe, width=16, textvariable=G_MOUSE_INFO_RGB_INFO)
     G_MOUSE_INFO_RGB_INFO_entry.grid(column=2, row=3, sticky=(tkinter.W, tkinter.E))
-    ttk.Label(mainframe, text="RGB Color").grid(column=1, row=3, sticky=tkinter.W)
+    ttk.Label(mainframe, text='RGB Color').grid(column=1, row=3, sticky=tkinter.W)
 
     # Set up the button to copy the RGB color to the clipboard:
-    rgbCopyButton = ttk.Button(mainframe, text="Copy RGB", width=MOUSE_INFO_BUTTON_WIDTH, command=_copyRgbMouseInfo)
+    rgbCopyButton = ttk.Button(mainframe, text='Copy RGB', width=MOUSE_INFO_BUTTON_WIDTH, command=_copyRgbMouseInfo)
     rgbCopyButton.grid(column=3, row=3, sticky=tkinter.W)
     rgbCopyButton.bind('<Return>', _copyRgbMouseInfo)
 
     # Set up the button to log the XY coordinates:
-    rgbLogButton = ttk.Button(mainframe, text="Log RGB", width=MOUSE_INFO_BUTTON_WIDTH, command=_logRgbMouseInfo)
+    rgbLogButton = ttk.Button(mainframe, text='Log RGB', width=MOUSE_INFO_BUTTON_WIDTH, command=_logRgbMouseInfo)
     rgbLogButton.grid(column=4, row=3, sticky=tkinter.W)
     rgbLogButton.bind('<Return>', _logRgbMouseInfo)
 
@@ -366,15 +403,15 @@ def mouseInfo():
     # Set up the RGB hex color text field and label:
     G_MOUSE_INFO_RGB_HEX_INFO_entry = ttk.Entry(mainframe, width=16, textvariable=G_MOUSE_INFO_RGB_HEX_INFO)
     G_MOUSE_INFO_RGB_HEX_INFO_entry.grid(column=2, row=4, sticky=(tkinter.W, tkinter.E))
-    ttk.Label(mainframe, text="RGB As Hex").grid(column=1, row=4, sticky=tkinter.W)
+    ttk.Label(mainframe, text='RGB As Hex').grid(column=1, row=4, sticky=tkinter.W)
 
     # Set up the button to copy the RGB hex color to the clipboard:
-    rgbHexCopyButton = ttk.Button(mainframe, text="Copy RGB Hex", width=MOUSE_INFO_BUTTON_WIDTH, command=_copyRgbHexMouseInfo)
+    rgbHexCopyButton = ttk.Button(mainframe, text='Copy RGB Hex', width=MOUSE_INFO_BUTTON_WIDTH, command=_copyRgbHexMouseInfo)
     rgbHexCopyButton.grid(column=3, row=4, sticky=tkinter.W)
     rgbHexCopyButton.bind('<Return>', _copyRgbHexMouseInfo)
 
     # Set up the button to log the XY coordinates:
-    rgbHexLogButton = ttk.Button(mainframe, text="Log RGB Hex", width=MOUSE_INFO_BUTTON_WIDTH, command=_logRgbHexMouseInfo)
+    rgbHexLogButton = ttk.Button(mainframe, text='Log RGB Hex', width=MOUSE_INFO_BUTTON_WIDTH, command=_logRgbHexMouseInfo)
     rgbHexLogButton.grid(column=4, row=4, sticky=tkinter.W)
     rgbHexLogButton.bind('<Return>', _logRgbHexMouseInfo)
 
@@ -383,7 +420,7 @@ def mouseInfo():
     # Set up the frame that displays the color of the pixel currently under the mouse cursor:
     G_MOUSE_INFO_COLOR_FRAME = tkinter.Frame(mainframe, width=50, height=50)
     G_MOUSE_INFO_COLOR_FRAME.grid(column=2, row=5, sticky=(tkinter.W, tkinter.E))
-    ttk.Label(mainframe, text="Color").grid(column=1, row=5, sticky=tkinter.W)
+    ttk.Label(mainframe, text='Color').grid(column=1, row=5, sticky=tkinter.W)
 
     # WIDGETS ON ROW 6:
 
@@ -395,6 +432,21 @@ def mouseInfo():
     G_MOUSE_INFO_LOG_TEXT_AREA['yscrollcommand'] = G_MOUSE_INFO_LOG_TEXT_AREA_SCROLLBAR.set
 
     # WIDGETS ON ROW 7:
+    G_MOUSE_INFO_LOG_FILENAME_entry = ttk.Entry(mainframe, width=16, textvariable=G_MOUSE_INFO_LOG_FILENAME_INFO)
+    G_MOUSE_INFO_LOG_FILENAME_entry.grid(column=1, row=7, columnspan=3, sticky=(tkinter.W, tkinter.E))
+    saveLogButton = ttk.Button(mainframe, text='Save Log', width=MOUSE_INFO_BUTTON_WIDTH, command=_saveLogFile)
+    saveLogButton.grid(column=4, row=7, sticky=tkinter.W)
+    saveLogButton.bind('<Return>', _saveLogFile)
+    G_MOUSE_INFO_LOG_FILENAME_INFO.set(os.path.join(os.getcwd(), 'mouseInfoLog.txt'))
+
+    # WIDGES ON ROW 8:
+    G_MOUSE_INFO_SCREENSHOT_FILENAME_entry = ttk.Entry(mainframe, width=16, textvariable=G_MOUSE_INFO_SCREENSHOT_FILENAME_INFO)
+    G_MOUSE_INFO_SCREENSHOT_FILENAME_entry.grid(column=1, row=8, columnspan=3, sticky=(tkinter.W, tkinter.E))
+    saveScreenshotButton = ttk.Button(mainframe, text='Save Screenshot', width=MOUSE_INFO_BUTTON_WIDTH, command=_saveScreenshotFile)
+    saveScreenshotButton.grid(column=4, row=8, sticky=tkinter.W)
+    saveScreenshotButton.bind('<Return>', _saveScreenshotFile)
+    G_MOUSE_INFO_SCREENSHOT_FILENAME_INFO.set(os.path.join(os.getcwd(), 'mouseInfoScreenshot.png'))
+
 
 
     # Add padding to all of the widgets:
