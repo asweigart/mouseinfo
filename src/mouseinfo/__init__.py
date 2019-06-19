@@ -243,18 +243,12 @@ def _copyAllMouseInfo(*args):
     pyperclip.copy(textFieldContents)
 
 
-def _scrollToBottomOfLogTextArea():
-    topOfTextArea, bottomOfTextArea = G_MOUSE_INFO_LOG_TEXT_AREA.yview()
-    G_MOUSE_INFO_LOG_TEXT_AREA.yview_moveto(bottomOfTextArea)
-
-
 def _logXyMouseInfo(*args):
     # Log the contents of the XY coordinate text field in the Mouse Info
     # window to the log text field.
     logContents = G_MOUSE_INFO_LOG_INFO.get() + '%s\n' % (G_MOUSE_INFO_XY_INFO.get())
     G_MOUSE_INFO_LOG_INFO.set(logContents)
-    G_MOUSE_INFO_LOG_TEXT_AREA.replace("1.0", tkinter.END, logContents)
-    _scrollToBottomOfLogTextArea()
+    _setLogTextAreaContents(logContents)
 
 
 def _logRgbMouseInfo(*args):
@@ -262,8 +256,7 @@ def _logRgbMouseInfo(*args):
     # window to the log text field.
     logContents = G_MOUSE_INFO_LOG_INFO.get() + '%s\n' % (G_MOUSE_INFO_RGB_INFO.get())
     G_MOUSE_INFO_LOG_INFO.set(logContents)
-    G_MOUSE_INFO_LOG_TEXT_AREA.replace("1.0", tkinter.END, logContents)
-    _scrollToBottomOfLogTextArea()
+    _setLogTextAreaContents(logContents)
 
 
 def _logRgbHexMouseInfo(*args):
@@ -271,8 +264,7 @@ def _logRgbHexMouseInfo(*args):
     # window to the log text field.
     logContents = G_MOUSE_INFO_LOG_INFO.get() + '%s\n' % (G_MOUSE_INFO_RGB_HEX_INFO.get())
     G_MOUSE_INFO_LOG_INFO.set(logContents)
-    G_MOUSE_INFO_LOG_TEXT_AREA.replace("1.0", tkinter.END, logContents)
-    _scrollToBottomOfLogTextArea()
+    _setLogTextAreaContents(logContents)
 
 
 def _logAllMouseInfo(*args):
@@ -283,8 +275,19 @@ def _logAllMouseInfo(*args):
                                       G_MOUSE_INFO_RGB_HEX_INFO.get())
     logContents = G_MOUSE_INFO_LOG_INFO.get() + '%s\n' % (textFieldContents)
     G_MOUSE_INFO_LOG_INFO.set(logContents)
-    G_MOUSE_INFO_LOG_TEXT_AREA.replace("1.0", tkinter.END, logContents)
-    _scrollToBottomOfLogTextArea()
+    _setLogTextAreaContents(logContents)
+
+
+def _setLogTextAreaContents(logContents):
+    if RUNNING_PYTHON_2:
+        G_MOUSE_INFO_LOG_TEXT_AREA.delete('1.0', tkinter.END)
+        G_MOUSE_INFO_LOG_TEXT_AREA.insert(tkinter.END, logContents)
+    else:
+        G_MOUSE_INFO_LOG_TEXT_AREA.replace('1.0', tkinter.END, logContents)
+
+    # Scroll to the bottom of the text area:
+    topOfTextArea, bottomOfTextArea = G_MOUSE_INFO_LOG_TEXT_AREA.yview()
+    G_MOUSE_INFO_LOG_TEXT_AREA.yview_moveto(bottomOfTextArea)
 
 
 def _saveLogFile(*args):
