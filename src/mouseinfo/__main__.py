@@ -1,4 +1,4 @@
 import mouseinfo
 
 if __name__ == '__main__':
-    pass
+    mouseinfo.mouseInfo()
