@@ -337,7 +337,7 @@ def mouseInfo():
     # WIDGETS ON ROW 1:
 
     # Set up the instructional text label:
-    ttk.Label(mainframe, text='Tab over the buttons and press Enter to\n"click" them as you move the mouse around.').grid(column=1, row=1, sticky=tkinter.W)
+    ttk.Label(mainframe, text='Tab over the buttons and press Enter to\n"click" them as you move the mouse around.').grid(column=1, row=1, columnspan=2, sticky=tkinter.W)
 
     # Set up the button to copy the XY coordinates to the clipboard:
     xyCopyButton = ttk.Button(mainframe, text='Copy All', width=MOUSE_INFO_BUTTON_WIDTH, command=_copyAllMouseInfo)
