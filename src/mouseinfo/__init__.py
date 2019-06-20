@@ -4,7 +4,7 @@
 # https://stackoverflow.com/questions/14910858/how-to-specify-where-a-tkinter-window-opens
 
 __version__ = '0.0.1'
-import pymsgbox, pyperclip, sys, os, platform
+import pyperclip, sys, os, platform
 
 # =========================================================================
 # Originally, these functions were pulled in from PyAutoGUI. However, to
@@ -71,7 +71,7 @@ elif sys.platform == 'darwin':
     position = _macPosition
 
 
-    def _macScreenshot(filename):
+    def _macScreenshot(filename=None):
         if filename is not None:
             tmpFilename = filename
         else:
@@ -144,18 +144,28 @@ elif platform.system() == 'Linux':
 # =========================================================================
 
 RUNNING_PYTHON_2 = sys.version_info[0] == 2
-if RUNNING_PYTHON_2:
-    import Tkinter as tkinter
-    #from Tkinter import Tk as ttk
-    ttk = tkinter
-else:
-    if platform.system() == 'Linux':
+
+if platform.system() == 'Linux':
+    if RUNNING_PYTHON_2:
+        try:
+            import Tkinter as tkinter
+            ttk = tkinter
+        except ImportError:
+            sys.exit('NOTE: You must install tkinter on Linux to use Mouse Info. Run the following: sudo apt-get install python-tk python-dev')
+    else:
+        # Running Python 3+:
         try:
             import tkinter
             from tkinter import ttk
         except ImportError:
-            sys.exit("NOTE: You must install tkinter on Linux to use Mouse Info. Run the following: sudo apt-get install python3-tk python3-dev")
+            sys.exit('NOTE: You must install tkinter on Linux to use Mouse Info. Run the following: sudo apt-get install python3-tk python3-dev')
+else:
+    # Running Windows or macOS:
+    if RUNNING_PYTHON_2:
+        import Tkinter as tkinter
+        ttk = tkinter
     else:
+        # Running Python 3+:
         import tkinter
         from tkinter import ttk
 
@@ -180,7 +190,9 @@ def _updateMouseInfoTextFields():
         G_MOUSE_INFO_RGB_INFO.set('NA_on_multimonitor_setups')
     else:
         # Get the RGB color value of the pixel currently under the mouse:
-        r, g, b = screenshot().getpixel((x, y))
+        # NOTE: On Windows & Linux, getpixel() returns a 3-integer tuple, but on macOS it returns a 4-integer tuple.
+        rgbValue = screenshot().getpixel((x, y))
+        r, g, b, = rgbValue[0], rgbValue[1], rgbValue[2]
         G_MOUSE_INFO_RGB_INFO.set('%s,%s,%s' % (r, g, b))
 
     if not (0 <= x < width and 0 <= y < height):
@@ -214,22 +226,33 @@ def _updateMouseInfoTextFields():
         return # Mouse Info window has been closed, so return immediately.
 
 
+def _copyText(textToCopy):
+    try:
+        pyperclip.copy(textToCopy)
+        G_MOUSE_INFO_STATUSBAR_INFO.set('Copied ' + textToCopy)
+    except pyperclip.PyperclipException:
+        if platform.system() == 'Linux':
+            G_MOUSE_INFO_STATUSBAR_INFO.set('Copy failed. Run "sudo apt-get install xsel".')
+        else:
+            G_MOUSE_INFO_STATUSBAR_INFO.set('Clipboard error: ' + str(e))
+
+
 def _copyXyMouseInfo(*args):
     # Copy the contents of the XY coordinate text field in the Mouse Info
     # window to the clipboard.
-    pyperclip.copy(G_MOUSE_INFO_XY_INFO.get())
+    _copyText(G_MOUSE_INFO_XY_INFO.get())
 
 
 def _copyRgbMouseInfo(*args):
     # Copy the contents of the RGB color text field in the Mouse Info
     # window to the clipboard.
-    pyperclip.copy(G_MOUSE_INFO_RGB_INFO.get())
+    _copyText(G_MOUSE_INFO_RGB_INFO.get())
 
 
 def _copyRgbHexMouseInfo(*args):
     # Copy the contents of the RGB hex color text field in the Mouse Info
     # window to the clipboard.
-    pyperclip.copy(G_MOUSE_INFO_RGB_HEX_INFO.get())
+    _copyText(G_MOUSE_INFO_RGB_HEX_INFO.get())
 
 
 def _copyAllMouseInfo(*args):
@@ -238,7 +261,7 @@ def _copyAllMouseInfo(*args):
     textFieldContents = '%s %s %s' % (G_MOUSE_INFO_XY_INFO.get(),
                                       G_MOUSE_INFO_RGB_INFO.get(),
                                       G_MOUSE_INFO_RGB_HEX_INFO.get())
-    pyperclip.copy(textFieldContents)
+    _copyText(textFieldContents)
 
 
 def _logXyMouseInfo(*args):
@@ -247,6 +270,7 @@ def _logXyMouseInfo(*args):
     logContents = G_MOUSE_INFO_LOG_INFO.get() + '%s\n' % (G_MOUSE_INFO_XY_INFO.get())
     G_MOUSE_INFO_LOG_INFO.set(logContents)
     _setLogTextAreaContents(logContents)
+    G_MOUSE_INFO_STATUSBAR_INFO.set('Logged ' + G_MOUSE_INFO_XY_INFO.get())
 
 
 def _logRgbMouseInfo(*args):
@@ -255,6 +279,7 @@ def _logRgbMouseInfo(*args):
     logContents = G_MOUSE_INFO_LOG_INFO.get() + '%s\n' % (G_MOUSE_INFO_RGB_INFO.get())
     G_MOUSE_INFO_LOG_INFO.set(logContents)
     _setLogTextAreaContents(logContents)
+    G_MOUSE_INFO_STATUSBAR_INFO.set('Logged ' + G_MOUSE_INFO_RGB_INFO.get())
 
 
 def _logRgbHexMouseInfo(*args):
@@ -263,6 +288,7 @@ def _logRgbHexMouseInfo(*args):
     logContents = G_MOUSE_INFO_LOG_INFO.get() + '%s\n' % (G_MOUSE_INFO_RGB_HEX_INFO.get())
     G_MOUSE_INFO_LOG_INFO.set(logContents)
     _setLogTextAreaContents(logContents)
+    G_MOUSE_INFO_STATUSBAR_INFO.set('Logged ' + G_MOUSE_INFO_RGB_HEX_INFO.get())
 
 
 def _logAllMouseInfo(*args):
@@ -274,6 +300,7 @@ def _logAllMouseInfo(*args):
     logContents = G_MOUSE_INFO_LOG_INFO.get() + '%s\n' % (textFieldContents)
     G_MOUSE_INFO_LOG_INFO.set(logContents)
     _setLogTextAreaContents(logContents)
+    G_MOUSE_INFO_STATUSBAR_INFO.set('Logged ' + textFieldContents)
 
 
 def _setLogTextAreaContents(logContents):
@@ -290,26 +317,26 @@ def _setLogTextAreaContents(logContents):
 
 def _saveLogFile(*args):
     # Save the current contents of the log file text field. Automatically
-    # overwrites the file if it exists. Displays an error message in a
-    # pymsgbox alert box if there is a problem.
+    # overwrites the file if it exists. Displays an error message in the
+    # status bar if there is a problem.
     try:
         with open(G_MOUSE_INFO_LOG_FILENAME_INFO.get(), 'w') as fo:
             fo.write(G_MOUSE_INFO_LOG_INFO.get())
     except Exception as e:
-        pymsgbox.alert('ERROR: ' + str(e), root=G_MOUSE_INFO_ROOT)
+        G_MOUSE_INFO_STATUSBAR_INFO.set('ERROR: ' + str(e))
     else:
-        pymsgbox.alert('Log file saved.', 'Success', root=G_MOUSE_INFO_ROOT)
+        G_MOUSE_INFO_STATUSBAR_INFO.set('Log file saved to ' + G_MOUSE_INFO_LOG_FILENAME_INFO.get())
 
 
 def _saveScreenshotFile(*args):
     # Saves a screenshot. Automatically overwrites the file if it exists.
-    # Displays an error message in a pymsgbox alert box if there is a problem.
+    # Displays an error message in the status bar if there is a problem.
     try:
         screenshot(G_MOUSE_INFO_SCREENSHOT_FILENAME_INFO.get())
     except Exception as e:
-        pymsgbox.alert('ERROR: ' + str(e), root=G_MOUSE_INFO_ROOT)
+        G_MOUSE_INFO_STATUSBAR_INFO.set('ERROR: ' + str(e))
     else:
-        pymsgbox.alert('Screenshot file saved.', 'Success', root=G_MOUSE_INFO_ROOT)
+        G_MOUSE_INFO_STATUSBAR_INFO.set('Screenshot file saved to ' + G_MOUSE_INFO_SCREENSHOT_FILENAME_INFO.get())
 
 
 def mouseInfo():
@@ -322,7 +349,7 @@ def mouseInfo():
     It's meant to be called once at a time."""
 
     # TODO - we use too many globals, convert this program to use OOP.
-    global G_MOUSE_INFO_RUNNING, G_MOUSE_INFO_ROOT, G_MOUSE_INFO_XY_INFO, G_MOUSE_INFO_RGB_INFO, G_MOUSE_INFO_RGB_HEX_INFO, G_MOUSE_INFO_COLOR_FRAME, G_MOUSE_INFO_LOG_TEXT_AREA, G_MOUSE_INFO_LOG_INFO, G_MOUSE_INFO_LOG_FILENAME_INFO, G_MOUSE_INFO_SCREENSHOT_FILENAME_INFO
+    global G_MOUSE_INFO_RUNNING, G_MOUSE_INFO_ROOT, G_MOUSE_INFO_XY_INFO, G_MOUSE_INFO_RGB_INFO, G_MOUSE_INFO_RGB_HEX_INFO, G_MOUSE_INFO_COLOR_FRAME, G_MOUSE_INFO_LOG_TEXT_AREA, G_MOUSE_INFO_LOG_INFO, G_MOUSE_INFO_LOG_FILENAME_INFO, G_MOUSE_INFO_SCREENSHOT_FILENAME_INFO, G_MOUSE_INFO_STATUSBAR_INFO
 
     G_MOUSE_INFO_RUNNING = True # While True, the text fields will update.
 
@@ -364,6 +391,7 @@ def mouseInfo():
     G_MOUSE_INFO_LOG_INFO                 = tkinter.StringVar() # The str contents of the log text area.
     G_MOUSE_INFO_LOG_FILENAME_INFO        = tkinter.StringVar() # The str contents of the log filename text field.
     G_MOUSE_INFO_SCREENSHOT_FILENAME_INFO = tkinter.StringVar() # The str contents of the screenshot filename text field.
+    G_MOUSE_INFO_STATUSBAR_INFO           = tkinter.StringVar() # The str contents of the status bar at the bottom of the window.
 
     # WIDGETS ON ROW 2:
 
@@ -440,7 +468,7 @@ def mouseInfo():
     saveLogButton.bind('<Return>', _saveLogFile)
     G_MOUSE_INFO_LOG_FILENAME_INFO.set(os.path.join(os.getcwd(), 'mouseInfoLog.txt'))
 
-    # WIDGES ON ROW 8:
+    # WIDGETS ON ROW 8:
     G_MOUSE_INFO_SCREENSHOT_FILENAME_entry = ttk.Entry(mainframe, width=16, textvariable=G_MOUSE_INFO_SCREENSHOT_FILENAME_INFO)
     G_MOUSE_INFO_SCREENSHOT_FILENAME_entry.grid(column=1, row=8, columnspan=3, sticky=(tkinter.W, tkinter.E))
     saveScreenshotButton = ttk.Button(mainframe, text='Save Screenshot', width=MOUSE_INFO_BUTTON_WIDTH, command=_saveScreenshotFile)
@@ -448,7 +476,9 @@ def mouseInfo():
     saveScreenshotButton.bind('<Return>', _saveScreenshotFile)
     G_MOUSE_INFO_SCREENSHOT_FILENAME_INFO.set(os.path.join(os.getcwd(), 'mouseInfoScreenshot.png'))
 
-
+    # WIDGETS ON ROW 9:
+    G_MOUSE_INFO_STATUSBAR = ttk.Label(mainframe, relief=tkinter.SUNKEN, textvariable=G_MOUSE_INFO_STATUSBAR_INFO)
+    G_MOUSE_INFO_STATUSBAR.grid(column=1, row=9, columnspan=5, sticky=(tkinter.W, tkinter.E))
 
     # Add padding to all of the widgets:
     for child in mainframe.winfo_children():
@@ -457,9 +487,13 @@ def mouseInfo():
             child.grid_configure(padx=0, pady=3)
         elif child == G_MOUSE_INFO_LOG_TEXT_AREA:
             child.grid_configure(padx=(3, 0), pady=3)
+        elif child == G_MOUSE_INFO_STATUSBAR:
+            child.grid_configure(padx=0, pady=(3, 0))
         else:
             # All other widgets have a standard padding of 3:
             child.grid_configure(padx=3, pady=3)
+
+    G_MOUSE_INFO_ROOT.resizable(False, False) # Prevent the window from being resized.
 
     G_MOUSE_INFO_XY_INFO_entry.focus() # Put the focus on the XY coordinate text field to start.
 
