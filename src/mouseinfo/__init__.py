@@ -186,7 +186,10 @@ def _updateMouseInfoTextFields():
     # support multi-monitor setups. The color information isn't reliable
     # when the mouse is not on the primary monitor, so display an error instead.
     width, height = size()
-    if not (0 <= x < width and 0 <= y < height):
+    if sys.platform == 'darwin':
+        # TODO - Until I can get screenshots without the mouse cursor, this feature doesn't work on mac.
+        G_MOUSE_INFO_RGB_INFO.set('NA_on_macOS')
+    elif not (0 <= x < width and 0 <= y < height):
         G_MOUSE_INFO_RGB_INFO.set('NA_on_multimonitor_setups')
     else:
         # Get the RGB color value of the pixel currently under the mouse:
@@ -195,7 +198,10 @@ def _updateMouseInfoTextFields():
         r, g, b, = rgbValue[0], rgbValue[1], rgbValue[2]
         G_MOUSE_INFO_RGB_INFO.set('%s,%s,%s' % (r, g, b))
 
-    if not (0 <= x < width and 0 <= y < height):
+    if sys.platform == 'darwin':
+        # TODO - Until I can get screenshots without the mouse cursor, this feature doesn't work on mac.
+        G_MOUSE_INFO_RGB_HEX_INFO.set('NA_on_macOS')
+    elif not (0 <= x < width and 0 <= y < height):
         G_MOUSE_INFO_RGB_HEX_INFO.set('NA_on_multimonitor_setups')
     else:
         # Convert this RGB value into a hex RGB value:
@@ -205,7 +211,7 @@ def _updateMouseInfoTextFields():
         hexColor = '#%s%s%s' % (rHex, gHex, bHex)
         G_MOUSE_INFO_RGB_HEX_INFO.set(hexColor)
 
-    if not (0 <= x < width and 0 <= y < height):
+    if (sys.platform == 'darwin') or (not (0 <= x < width and 0 <= y < height)):
         G_MOUSE_INFO_COLOR_FRAME.configure(background='black')
     else:
         # Update the color panel:
@@ -230,7 +236,7 @@ def _copyText(textToCopy):
     try:
         pyperclip.copy(textToCopy)
         G_MOUSE_INFO_STATUSBAR_INFO.set('Copied ' + textToCopy)
-    except pyperclip.PyperclipException:
+    except pyperclip.PyperclipException as e:
         if platform.system() == 'Linux':
             G_MOUSE_INFO_STATUSBAR_INFO.set('Copy failed. Run "sudo apt-get install xsel".')
         else:
