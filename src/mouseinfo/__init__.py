@@ -1,4 +1,4 @@
-# Mouse Info by Al Sweigart al@inventwithpython.com
+# MouseInfo by Al Sweigart al@inventwithpython.com
 
 # Note: how to specify where a tkintr window opens:
 # https://stackoverflow.com/questions/14910858/how-to-specify-where-a-tkinter-window-opens
@@ -164,7 +164,7 @@ if platform.system() == 'Linux':
             ttk = tkinter
             import tkFont as font
         except ImportError:
-            sys.exit('NOTE: You must install tkinter on Linux to use Mouse Info. Run the following: sudo apt-get install python-tk python-dev')
+            sys.exit('NOTE: You must install tkinter on Linux to use MouseInfo. Run the following: sudo apt-get install python-tk python-dev')
     else:
         # Running Python 3+:
         try:
@@ -172,7 +172,7 @@ if platform.system() == 'Linux':
             from tkinter import ttk
             from tkinter import font
         except ImportError:
-            sys.exit('NOTE: You must install tkinter on Linux to use Mouse Info. Run the following: sudo apt-get install python3-tk python3-dev')
+            sys.exit('NOTE: You must install tkinter on Linux to use MouseInfo. Run the following: sudo apt-get install python3-tk python3-dev')
 else:
     # Running Windows or macOS:
     if RUNNING_PYTHON_2:
@@ -185,17 +185,17 @@ else:
         from tkinter import ttk
         from tkinter import font
 
-MOUSE_INFO_BUTTON_WIDTH = 14 # A standard width for the buttons in the Mouse Info window.
+MOUSE_INFO_BUTTON_WIDTH = 14 # A standard width for the buttons in the MouseInfo window.
 
 class MouseInfoWindow:
     def _updateMouseInfoTextFields(self):
-        # Update the XY and RGB text fields in the Mouse Info window.
+        # Update the XY and RGB text fields in the MouseInfo window.
 
         # Get the XY coordinates of the current mouse position:
         x, y = position()
         self.xyTextboxSV.set('%s,%s' % (x - self.xOrigin, y - self.yOrigin))
 
-        # Mouse Info currently only works on the primary monitor, and doesn't
+        # MouseInfo currently only works on the primary monitor, and doesn't
         # support multi-monitor setups. The color information isn't reliable
         # when the mouse is not on the primary monitor, so display an error instead.
         width, height = size()
@@ -240,9 +240,9 @@ class MouseInfoWindow:
         # You can reproduce it by moving this if-else code to the top of this
         # function.
         if self.isRunning:
-            self.root.after(100, self._updateMouseInfoTextFields)
+            self._updateMouseInfoJob = self.root.after(100, self._updateMouseInfoTextFields)
         else:
-            return # Mouse Info window has been closed, so return immediately.
+            return # MouseInfo window has been closed, so return immediately.
 
 
     def _copyText(self, textToCopy):
@@ -257,7 +257,7 @@ class MouseInfoWindow:
 
 
     def _copyXyMouseInfo(self, *args):
-        # Copy the contents of the XY coordinate text field in the Mouse Info
+        # Copy the contents of the XY coordinate text field in the MouseInfo
         # window to the clipboard.
         if self.delayEnabledSV.get() == 'on' and len(args) == 0:
             # Start countdown by having after() call this function in 1 second:
@@ -278,7 +278,7 @@ class MouseInfoWindow:
 
 
     def _copyRgbMouseInfo(self, *args):
-        # Copy the contents of the RGB color text field in the Mouse Info
+        # Copy the contents of the RGB color text field in the MouseInfo
         # window to the clipboard.
         if self.delayEnabledSV.get() == 'on' and len(args) == 0:
             # Start countdown by having after() call this function in 1 second:
@@ -299,7 +299,7 @@ class MouseInfoWindow:
 
 
     def _copyRgbHexMouseInfo(self, *args):
-        # Copy the contents of the RGB hex color text field in the Mouse Info
+        # Copy the contents of the RGB hex color text field in the MouseInfo
         # window to the clipboard.
         if self.delayEnabledSV.get() == 'on' and len(args) == 0:
             # Start countdown by having after() call this function in 1 second:
@@ -321,7 +321,7 @@ class MouseInfoWindow:
 
     def _copyAllMouseInfo(self, *args):
         # Copy the contents of the XY coordinate and RGB color text fields in the
-        # Mouse Info window to the log text field.
+        # MouseInfo window to the log text field.
         textFieldContents = '%s %s %s' % (self.xyTextboxSV.get(),
                                           self.rgbSV.get(),
                                           self.rgbHexSV.get())
@@ -348,7 +348,7 @@ class MouseInfoWindow:
 
 
     def _logXyMouseInfo(self, *args):
-        # Log the contents of the XY coordinate text field in the Mouse Info
+        # Log the contents of the XY coordinate text field in the MouseInfo
         # window to the log text field.
         if self.delayEnabledSV.get() == 'on' and len(args) == 0:
             # Start countdown by having after() call this function in 1 second:
@@ -372,7 +372,7 @@ class MouseInfoWindow:
 
 
     def _logRgbMouseInfo(self, *args):
-        # Log the contents of the RGB color text field in the Mouse Info
+        # Log the contents of the RGB color text field in the MouseInfo
         # window to the log text field.
         if self.delayEnabledSV.get() == 'on' and len(args) == 0:
             # Start countdown by having after() call this function in 1 second:
@@ -396,7 +396,7 @@ class MouseInfoWindow:
 
 
     def _logRgbHexMouseInfo(self, *args):
-        # Log the contents of the RGB hex color text field in the Mouse Info
+        # Log the contents of the RGB hex color text field in the MouseInfo
         # window to the log text field.
         if self.delayEnabledSV.get() == 'on' and len(args) == 0:
             # Start countdown by having after() call this function in 1 second:
@@ -421,7 +421,7 @@ class MouseInfoWindow:
 
     def _logAllMouseInfo(self, *args):
         # Log the contents of the XY coordinate and RGB color text fields in the
-        # Mouse Info window to the log text field.
+        # MouseInfo window to the log text field.
         if self.delayEnabledSV.get() == 'on' and len(args) == 0:
             # Start countdown by having after() call this function in 1 second:
             self.root.after(1000, self._logAllMouseInfo, 2)
@@ -445,35 +445,6 @@ class MouseInfoWindow:
             self.statusbarSV.set('Logged ' + textFieldContents)
             self.allLogButtonSV.set('Log All')
 
-    def _setXyOrigin(self, *args):
-        if self.delayEnabledSV.get() == 'on' and len(args) == 0:
-            # Start countdown by having after() call this function in 1 second:
-            self.root.after(1000, self._setXyOrigin, 2)
-            self.xyOriginSetButtonSV.set('Setting in 3')
-        elif len(args) == 1 and args[0] == 2:
-            # Continue countdown by having after() call this function in 1 second:
-            self.root.after(1000, self._setXyOrigin, 1)
-            self.xyOriginSetButtonSV.set('Setting in 2')
-        elif len(args) == 1 and args[0] == 1:
-            # Continue countdown by having after() call this function in 1 second:
-            self.root.after(1000, self._setXyOrigin, 0)
-            self.xyOriginSetButtonSV.set('Setting in 1')
-        else:
-            # Delay disabled or countdown has finished:
-            x, y = position()
-            self.xyOriginSV.set(str(x) + ', ' + str(y))
-            self.xOrigin = x
-            self.yOrigin = y
-
-            self.statusbarSV.set('Set XY Origin to ' + str(x) + ', ' + str(y))
-            self.xyOriginSetButtonSV.set('Set XY Origin')
-
-    def _resetXyOrigin(self, *args):
-        self.xOrigin = 0
-        self.yOrigin = 0
-        self.xyOriginSV.set('0, 0')
-        self.statusbarSV.set('Reset XY Origin to 0, 0')
-
     def _xyOriginChanged(self, sv):
         contents = sv.get()
         if len(contents.split(',')) != 2:
@@ -485,7 +456,7 @@ class MouseInfoWindow:
             return # Do nothing.
         self.xOrigin = int(x)
         self.yOrigin = int(y)
-        self.statusbarSV.set('Set XY Origin to ' + x + ', ' + y)
+        self.statusbarSV.set('Set XY Origin to ' + str(self.xOrigin) + ', ' + str(self.yOrigin))
 
     def _setLogTextAreaContents(self, logContents):
         if RUNNING_PYTHON_2:
@@ -524,23 +495,23 @@ class MouseInfoWindow:
 
 
     def __init__(self):
-        """Launches the Mouse Info window, which displays XY coordinate and RGB
+        """Launches the MouseInfo window, which displays XY coordinate and RGB
         color information for the mouse's current position."""
 
         self.isRunning = True # While True, the text fields will update.
 
-        # Create the Mouse Info window:
+        # Create the MouseInfo window:
         self.root = tkinter.Tk()
-        self.root.title('Mouse Info ' + __version__)
+        self.root.title('MouseInfo ' + __version__)
         self.root.minsize(400, 100)
 
-        # Create the main frame in the Mouse Info window:
+        # Create the main frame in the MouseInfo window:
         if RUNNING_PYTHON_2:
             mainframe = tkinter.Frame(self.root)
         else:
             mainframe = ttk.Frame(self.root, padding='3 3 12 12')
 
-        # Set up the grid for the Mouse Info window's widgets:
+        # Set up the grid for the MouseInfo window's widgets:
         mainframe.grid(column=0, row=0, sticky=(tkinter.N, tkinter.W, tkinter.E, tkinter.S))
         mainframe.columnconfigure(0, weight=1)
         mainframe.rowconfigure(0, weight=1)
@@ -548,7 +519,7 @@ class MouseInfoWindow:
         # WIDGETS ON ROW 1:
 
         urlLabel = ttk.Label(mainframe, foreground='blue', text='https://mouseinfo.readthedocs.io')
-        urlLabel.grid(column=1, row=1, sticky=tkinter.W)
+        urlLabel.grid(column=1, row=1, columnspan=3, sticky=tkinter.W)
         urlLabel.bind('<Button-1>', lambda *args: webbrowser.open('https://mouseinfo.readthedocs'))
         fontObj = font.Font(urlLabel, urlLabel.cget('font'))
         fontObj.configure(underline=True)
@@ -564,7 +535,6 @@ class MouseInfoWindow:
         delayCheckbox = ttk.Checkbutton(mainframe, text='3 Sec. Button Delay', variable=self.delayEnabledSV, onvalue='on', offvalue='off')
         delayCheckbox.grid(column=1, row=2, columnspan=2, sticky=tkinter.W)
 
-
         # Set up the button to copy the XY coordinates to the clipboard:
         self.allCopyButtonSV = tkinter.StringVar()
         self.allCopyButtonSV.set('Copy All')
@@ -579,7 +549,7 @@ class MouseInfoWindow:
         self.allLogButton.grid(column=4, row=2, sticky=tkinter.W)
         self.allLogButton.bind('<Return>', self._logAllMouseInfo)
 
-        # Set up the variables for the content of the Mouse Info window's text fields:
+        # Set up the variables for the content of the MouseInfo window's text fields:
         self.xyTextboxSV          = tkinter.StringVar() # The str contents of the xy text field.
         self.rgbSV                = tkinter.StringVar() # The str contents of the rgb text field.
         self.rgbHexSV             = tkinter.StringVar() # The str contents of the rgb hex text field.
@@ -594,7 +564,7 @@ class MouseInfoWindow:
         # Set up the XY coordinate text field and label:
         self.xyInfoTextbox = ttk.Entry(mainframe, width=16, textvariable=self.xyTextboxSV)
         self.xyInfoTextbox.grid(column=2, row=3, sticky=(tkinter.W, tkinter.E))
-        ttk.Label(mainframe, text='XY Position').grid(column=1, row=2, sticky=tkinter.W)
+        ttk.Label(mainframe, text='XY Position').grid(column=1, row=3, sticky=tkinter.W)
 
         # Set up the button to copy the XY coordinates to the clipboard:
         self.xyCopyButtonSV = tkinter.StringVar()
@@ -615,7 +585,7 @@ class MouseInfoWindow:
         # Set up the RGB color text field and label:
         self.rgbSV_entry = ttk.Entry(mainframe, width=16, textvariable=self.rgbSV)
         self.rgbSV_entry.grid(column=2, row=4, sticky=(tkinter.W, tkinter.E))
-        ttk.Label(mainframe, text='RGB Color').grid(column=1, row=3, sticky=tkinter.W)
+        ttk.Label(mainframe, text='RGB Color').grid(column=1, row=4, sticky=tkinter.W)
 
         # Set up the button to copy the RGB color to the clipboard:
         self.rgbCopyButtonSV = tkinter.StringVar()
@@ -636,7 +606,7 @@ class MouseInfoWindow:
         # Set up the RGB hex color text field and label:
         self.rgbHexSV_entry = ttk.Entry(mainframe, width=16, textvariable=self.rgbHexSV)
         self.rgbHexSV_entry.grid(column=2, row=5, sticky=(tkinter.W, tkinter.E))
-        ttk.Label(mainframe, text='RGB As Hex').grid(column=1, row=4, sticky=tkinter.W)
+        ttk.Label(mainframe, text='RGB As Hex').grid(column=1, row=5, sticky=tkinter.W)
 
         # Set up the button to copy the RGB hex color to the clipboard:
         self.rgbHexCopyButtonSV = tkinter.StringVar()
@@ -657,7 +627,7 @@ class MouseInfoWindow:
         # Set up the frame that displays the color of the pixel currently under the mouse cursor:
         self.colorFrame = tkinter.Frame(mainframe, width=50, height=50)
         self.colorFrame.grid(column=2, row=6, sticky=(tkinter.W, tkinter.E))
-        ttk.Label(mainframe, text='Color').grid(column=1, row=5, sticky=tkinter.W)
+        ttk.Label(mainframe, text='Color').grid(column=1, row=6, sticky=tkinter.W)
 
         # WIDGETS ON ROW 7:
 
@@ -665,22 +635,10 @@ class MouseInfoWindow:
         self.xOrigin = 0
         self.yOrigin = 0
         self.xyOriginSV.set('0, 0')
-        ttk.Label(mainframe, text='XY Origin').grid(column=1, row=6, sticky=tkinter.W)
+        ttk.Label(mainframe, text='XY Origin').grid(column=1, row=7, sticky=tkinter.W)
         self.xyOriginSV.trace("w", lambda name, index, mode, sv=self.xyOriginSV: self._xyOriginChanged(sv))
         self.xyOriginSV_entry = ttk.Entry(mainframe, width=16, textvariable=self.xyOriginSV)
         self.xyOriginSV_entry.grid(column=2, row=7, sticky=(tkinter.W, tkinter.E))
-
-        # Set up the button to set the XY origin:
-        self.xyOriginSetButtonSV = tkinter.StringVar()
-        self.xyOriginSetButtonSV.set('Set XY Origin')
-        self.xyOriginSetButton = ttk.Button(mainframe, textvariable=self.xyOriginSetButtonSV, width=MOUSE_INFO_BUTTON_WIDTH, command=self._setXyOrigin)
-        self.xyOriginSetButton.grid(column=3, row=7, sticky=tkinter.W)
-        self.xyOriginSetButton.bind('<Return>', self._setXyOrigin)
-
-        # Set up the button to reset the XY origin to 0, 0:
-        self.xyOriginResetButton = ttk.Button(mainframe, text='Reset XY Origin', width=MOUSE_INFO_BUTTON_WIDTH, command=self._resetXyOrigin)
-        self.xyOriginResetButton.grid(column=4, row=7, sticky=tkinter.W)
-        self.xyOriginResetButton.bind('<Return>', self._resetXyOrigin)
 
         # WIDGETS ON ROW 8:
 
@@ -724,11 +682,14 @@ class MouseInfoWindow:
                 # All other widgets have a standard padding of 3:
                 child.grid_configure(padx=3, pady=3)
 
+        # Add keyboard hotkeys for the Copy/Log buttons:
+        self.root.bind('<Return>', self._logAllMouseInfo)
+
         self.root.resizable(False, False) # Prevent the window from being resized.
 
         self.xyInfoTextbox.focus() # Put the focus on the XY coordinate text field to start.
 
-        self.root.after(100, self._updateMouseInfoTextFields) # Begin updating the text fields.
+        self._updateMouseInfoJob = self.root.after(100, self._updateMouseInfoTextFields) # Begin updating the text fields.
 
         # Make the mouse info window "always on top".
         self.root.attributes('-topmost', True)
@@ -737,7 +698,8 @@ class MouseInfoWindow:
         # Start the application:
         self.root.mainloop()
 
-        # Application has closed, set this to False:
+        # Application has closed, set isRunning to False and cancel any "after" commands already queued:
+        self.root.after_cancel(self._updateMouseInfoJob)
         self.isRunning = False
 
         # Destroy the tkinter root widget:
