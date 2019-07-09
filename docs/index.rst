@@ -102,7 +102,7 @@ Buttons
 
 * **Color** - A colored box that shows the current color in the *RGB Color* and *RGB as Hex* fields.
 
-* **XY Origin** - An XY coordinate for the origin that the coordinate sin hte *XY Position* field is relative to.
+* **XY Origin** - An XY coordinate for the origin that the coordinates in the *XY Position* field are relative to.
 
 * **Save Log** - Saves the contents of the log text field to the filename in the text field to the left. (This filename is *mouseInfoLog.txt* by default.)
 
