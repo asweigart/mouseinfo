@@ -3,6 +3,18 @@
 # Note: how to specify where a tkintr window opens:
 # https://stackoverflow.com/questions/14910858/how-to-specify-where-a-tkinter-window-opens
 
+"""
+Features we should consider adding:
+* Register a global hotkey for copying/logging info. (Should this hotkey be configurable?)
+
+Features that have been considered and rejected:
+
+* The Save Log/Save Screenshot buttons should open a file dialog box.
+* The Save Log button should append text, instead of overwrite it.
+* The log text area should prepopulate itself with the contents of the given filename.
+* The button delay should be configurable instead of just set to 3 seconds.
+"""
+
 __version__ = '0.0.2'
 import pyperclip, sys, os, platform
 
@@ -177,7 +189,7 @@ class MouseInfoWindow:
 
         # Get the XY coordinates of the current mouse position:
         x, y = position()
-        self.xyTextboxSV.set('%s,%s' % (x, y))
+        self.xyTextboxSV.set('%s,%s' % (x - self.xOrigin, y - self.yOrigin))
 
         # Mouse Info currently only works on the primary monitor, and doesn't
         # support multi-monitor setups. The color information isn't reliable
@@ -429,6 +441,47 @@ class MouseInfoWindow:
             self.statusbarSV.set('Logged ' + textFieldContents)
             self.allLogButtonSV.set('Log All')
 
+    def _setXyOrigin(self, *args):
+        if self.delayEnabledSV.get() == 'on' and len(args) == 0:
+            # Start countdown by having after() call this function in 1 second:
+            self.root.after(1000, self._setXyOrigin, 2)
+            self.xyOriginSetButtonSV.set('Setting in 3')
+        elif len(args) == 1 and args[0] == 2:
+            # Continue countdown by having after() call this function in 1 second:
+            self.root.after(1000, self._setXyOrigin, 1)
+            self.xyOriginSetButtonSV.set('Setting in 2')
+        elif len(args) == 1 and args[0] == 1:
+            # Continue countdown by having after() call this function in 1 second:
+            self.root.after(1000, self._setXyOrigin, 0)
+            self.xyOriginSetButtonSV.set('Setting in 1')
+        else:
+            # Delay disabled or countdown has finished:
+            x, y = position()
+            self.xyOriginSV.set(str(x) + ', ' + str(y))
+            self.xOrigin = x
+            self.yOrigin = y
+
+            self.statusbarSV.set('Set XY Origin to ' + str(x) + ', ' + str(y))
+            self.xyOriginSetButtonSV.set('Set XY Origin')
+
+    def _resetXyOrigin(self, *args):
+        self.xOrigin = 0
+        self.yOrigin = 0
+        self.xyOriginSV.set('0, 0')
+        self.statusbarSV.set('Reset XY Origin to 0, 0')
+
+    def _xyOriginChanged(self, sv):
+        contents = sv.get()
+        if len(contents.split(',')) != 2:
+            return # Do nothing if the text is invalid
+        x, y = contents.split(',')
+        x = x.strip()
+        y = y.strip()
+        if not x.isdecimal() or not y.isdecimal():
+            return # Do nothing.
+        self.xOrigin = int(x)
+        self.yOrigin = int(y)
+        self.statusbarSV.set('Set XY Origin to ' + x + ', ' + y)
 
     def _setLogTextAreaContents(self, logContents):
         if RUNNING_PYTHON_2:
@@ -516,6 +569,7 @@ class MouseInfoWindow:
         self.xyTextboxSV          = tkinter.StringVar() # The str contents of the xy text field.
         self.rgbSV                = tkinter.StringVar() # The str contents of the rgb text field.
         self.rgbHexSV             = tkinter.StringVar() # The str contents of the rgb hex text field.
+        self.xyOriginSV           = tkinter.StringVar() # The str contents of the xy origin field.
         self.logTextboxSV         = tkinter.StringVar() # The str contents of the log text area.
         self.logFilenameSV        = tkinter.StringVar() # The str contents of the log filename text field.
         self.screenshotFilenameSV = tkinter.StringVar() # The str contents of the screenshot filename text field.
@@ -593,32 +647,55 @@ class MouseInfoWindow:
 
         # WIDGETS ON ROW 6:
 
-        # Set up the multiline text widget where the log info appears:
-        self.logTextarea = tkinter.Text(mainframe, width=20, height=6)
-        self.logTextarea.grid(column=1, row=6, columnspan=4, sticky=(tkinter.W, tkinter.E, tkinter.N, tkinter.S))
-        self.logTextareaScrollbar = ttk.Scrollbar(mainframe, orient=tkinter.VERTICAL, command=self.logTextarea.yview)
-        self.logTextareaScrollbar.grid(column=5, row=6, sticky=(tkinter.N, tkinter.S))
-        self.logTextarea['yscrollcommand'] = self.logTextareaScrollbar.set
+        # Set up the XY origin text field and label:
+        self.xOrigin = 0
+        self.yOrigin = 0
+        self.xyOriginSV.set('0, 0')
+        ttk.Label(mainframe, text='XY Origin').grid(column=1, row=6, sticky=tkinter.W)
+        self.xyOriginSV.trace("w", lambda name, index, mode, sv=self.xyOriginSV: self._xyOriginChanged(sv))
+        self.xyOriginSV_entry = ttk.Entry(mainframe, width=16, textvariable=self.xyOriginSV)
+        self.xyOriginSV_entry.grid(column=2, row=6, sticky=(tkinter.W, tkinter.E))
+
+        # Set up the button to set the XY origin:
+        self.xyOriginSetButtonSV = tkinter.StringVar()
+        self.xyOriginSetButtonSV.set('Set XY Origin')
+        self.xyOriginSetButton = ttk.Button(mainframe, textvariable=self.xyOriginSetButtonSV, width=MOUSE_INFO_BUTTON_WIDTH, command=self._setXyOrigin)
+        self.xyOriginSetButton.grid(column=3, row=6, sticky=tkinter.W)
+        self.xyOriginSetButton.bind('<Return>', self._setXyOrigin)
+
+        # Set up the button to reset the XY origin to 0, 0:
+        self.xyOriginResetButton = ttk.Button(mainframe, text='Reset XY Origin', width=MOUSE_INFO_BUTTON_WIDTH, command=self._resetXyOrigin)
+        self.xyOriginResetButton.grid(column=4, row=6, sticky=tkinter.W)
+        self.xyOriginResetButton.bind('<Return>', self._resetXyOrigin)
 
         # WIDGETS ON ROW 7:
+
+        # Set up the multiline text widget where the log info appears:
+        self.logTextarea = tkinter.Text(mainframe, width=20, height=6)
+        self.logTextarea.grid(column=1, row=7, columnspan=4, sticky=(tkinter.W, tkinter.E, tkinter.N, tkinter.S))
+        self.logTextareaScrollbar = ttk.Scrollbar(mainframe, orient=tkinter.VERTICAL, command=self.logTextarea.yview)
+        self.logTextareaScrollbar.grid(column=5, row=7, sticky=(tkinter.N, tkinter.S))
+        self.logTextarea['yscrollcommand'] = self.logTextareaScrollbar.set
+
+        # WIDGETS ON ROW 8:
         self.logFilenameTextbox = ttk.Entry(mainframe, width=16, textvariable=self.logFilenameSV)
-        self.logFilenameTextbox.grid(column=1, row=7, columnspan=3, sticky=(tkinter.W, tkinter.E))
+        self.logFilenameTextbox.grid(column=1, row=8, columnspan=3, sticky=(tkinter.W, tkinter.E))
         self.saveLogButton = ttk.Button(mainframe, text='Save Log', width=MOUSE_INFO_BUTTON_WIDTH, command=self._saveLogFile)
-        self.saveLogButton.grid(column=4, row=7, sticky=tkinter.W)
+        self.saveLogButton.grid(column=4, row=8, sticky=tkinter.W)
         self.saveLogButton.bind('<Return>', self._saveLogFile)
         self.logFilenameSV.set(os.path.join(os.getcwd(), 'mouseInfoLog.txt'))
 
-        # WIDGETS ON ROW 8:
+        # WIDGETS ON ROW 9:
         G_MOUSE_INFO_SCREENSHOT_FILENAME_entry = ttk.Entry(mainframe, width=16, textvariable=self.screenshotFilenameSV)
-        G_MOUSE_INFO_SCREENSHOT_FILENAME_entry.grid(column=1, row=8, columnspan=3, sticky=(tkinter.W, tkinter.E))
+        G_MOUSE_INFO_SCREENSHOT_FILENAME_entry.grid(column=1, row=9, columnspan=3, sticky=(tkinter.W, tkinter.E))
         self.saveScreenshotButton = ttk.Button(mainframe, text='Save Screenshot', width=MOUSE_INFO_BUTTON_WIDTH, command=self._saveScreenshotFile)
-        self.saveScreenshotButton.grid(column=4, row=8, sticky=tkinter.W)
+        self.saveScreenshotButton.grid(column=4, row=9, sticky=tkinter.W)
         self.saveScreenshotButton.bind('<Return>', self._saveScreenshotFile)
         self.screenshotFilenameSV.set(os.path.join(os.getcwd(), 'mouseInfoScreenshot.png'))
 
-        # WIDGETS ON ROW 9:
+        # WIDGETS ON ROW 10:
         statusbar = ttk.Label(mainframe, relief=tkinter.SUNKEN, textvariable=self.statusbarSV)
-        statusbar.grid(column=1, row=9, columnspan=5, sticky=(tkinter.W, tkinter.E))
+        statusbar.grid(column=1, row=10, columnspan=5, sticky=(tkinter.W, tkinter.E))
 
         # Add padding to all of the widgets:
         for child in mainframe.winfo_children():
