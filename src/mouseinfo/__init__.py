@@ -16,7 +16,7 @@ Features that have been considered and rejected:
 """
 
 __version__ = '0.0.3'
-import pyperclip, sys, os, platform
+import pyperclip, sys, os, platform, webbrowser
 
 # =========================================================================
 # Originally, these functions were pulled in from PyAutoGUI. However, to
@@ -162,6 +162,7 @@ if platform.system() == 'Linux':
         try:
             import Tkinter as tkinter
             ttk = tkinter
+            import tkFont as font
         except ImportError:
             sys.exit('NOTE: You must install tkinter on Linux to use Mouse Info. Run the following: sudo apt-get install python-tk python-dev')
     else:
@@ -169,6 +170,7 @@ if platform.system() == 'Linux':
         try:
             import tkinter
             from tkinter import ttk
+            from tkinter import font
         except ImportError:
             sys.exit('NOTE: You must install tkinter on Linux to use Mouse Info. Run the following: sudo apt-get install python3-tk python3-dev')
 else:
@@ -176,10 +178,12 @@ else:
     if RUNNING_PYTHON_2:
         import Tkinter as tkinter
         ttk = tkinter
+        import tkFont as font
     else:
         # Running Python 3+:
         import tkinter
         from tkinter import ttk
+        from tkinter import font
 
 MOUSE_INFO_BUTTON_WIDTH = 14 # A standard width for the buttons in the Mouse Info window.
 
@@ -543,26 +547,36 @@ class MouseInfoWindow:
 
         # WIDGETS ON ROW 1:
 
+        urlLabel = ttk.Label(mainframe, foreground='blue', text='https://mouseinfo.readthedocs.io')
+        urlLabel.grid(column=1, row=1, sticky=tkinter.W)
+        urlLabel.bind('<Button-1>', lambda *args: webbrowser.open('https://mouseinfo.readthedocs'))
+        fontObj = font.Font(urlLabel, urlLabel.cget('font'))
+        fontObj.configure(underline=True)
+        urlLabel.configure(font=fontObj)
+
+
+        # WIDGETS ON ROW 2:
+
         # Set up the instructional text label:
         #ttk.Label(mainframe, text='Tab over the buttons and press Enter to\n"click" them as you move the mouse around.').grid(column=1, row=1, columnspan=2, sticky=tkinter.W)
         self.delayEnabledSV = tkinter.StringVar()
         self.delayEnabledSV.set('on')
         delayCheckbox = ttk.Checkbutton(mainframe, text='3 Sec. Button Delay', variable=self.delayEnabledSV, onvalue='on', offvalue='off')
-        delayCheckbox.grid(column=1, row=1, columnspan=2, sticky=tkinter.W)
+        delayCheckbox.grid(column=1, row=2, columnspan=2, sticky=tkinter.W)
 
 
         # Set up the button to copy the XY coordinates to the clipboard:
         self.allCopyButtonSV = tkinter.StringVar()
         self.allCopyButtonSV.set('Copy All')
         self.allCopyButton = ttk.Button(mainframe, textvariable=self.allCopyButtonSV, width=MOUSE_INFO_BUTTON_WIDTH, command=self._copyAllMouseInfo)
-        self.allCopyButton.grid(column=3, row=1, sticky=tkinter.W)
+        self.allCopyButton.grid(column=3, row=2, sticky=tkinter.W)
         self.allCopyButton.bind('<Return>', self._copyAllMouseInfo)
 
         # Set up the button to copy the XY coordinates to the clipboard:
         self.allLogButtonSV = tkinter.StringVar()
         self.allLogButtonSV.set('Log All')
         self.allLogButton = ttk.Button(mainframe, textvariable=self.allLogButtonSV, width=MOUSE_INFO_BUTTON_WIDTH, command=self._logAllMouseInfo)
-        self.allLogButton.grid(column=4, row=1, sticky=tkinter.W)
+        self.allLogButton.grid(column=4, row=2, sticky=tkinter.W)
         self.allLogButton.bind('<Return>', self._logAllMouseInfo)
 
         # Set up the variables for the content of the Mouse Info window's text fields:
@@ -575,77 +589,77 @@ class MouseInfoWindow:
         self.screenshotFilenameSV = tkinter.StringVar() # The str contents of the screenshot filename text field.
         self.statusbarSV          = tkinter.StringVar() # The str contents of the status bar at the bottom of the window.
 
-        # WIDGETS ON ROW 2:
+        # WIDGETS ON ROW 3:
 
         # Set up the XY coordinate text field and label:
         self.xyInfoTextbox = ttk.Entry(mainframe, width=16, textvariable=self.xyTextboxSV)
-        self.xyInfoTextbox.grid(column=2, row=2, sticky=(tkinter.W, tkinter.E))
+        self.xyInfoTextbox.grid(column=2, row=3, sticky=(tkinter.W, tkinter.E))
         ttk.Label(mainframe, text='XY Position').grid(column=1, row=2, sticky=tkinter.W)
 
         # Set up the button to copy the XY coordinates to the clipboard:
         self.xyCopyButtonSV = tkinter.StringVar()
         self.xyCopyButtonSV.set('Copy XY')
         self.xyCopyButton = ttk.Button(mainframe, textvariable=self.xyCopyButtonSV, width=MOUSE_INFO_BUTTON_WIDTH, command=self._copyXyMouseInfo)
-        self.xyCopyButton.grid(column=3, row=2, sticky=tkinter.W)
+        self.xyCopyButton.grid(column=3, row=3, sticky=tkinter.W)
         self.xyCopyButton.bind('<Return>', self._copyXyMouseInfo)
 
         # Set up the button to log the XY coordinates:
         self.xyLogButtonSV = tkinter.StringVar()
         self.xyLogButtonSV.set('Log XY')
         self.xyLogButton = ttk.Button(mainframe, textvariable=self.xyLogButtonSV, width=MOUSE_INFO_BUTTON_WIDTH, command=self._logXyMouseInfo)
-        self.xyLogButton.grid(column=4, row=2, sticky=tkinter.W)
+        self.xyLogButton.grid(column=4, row=3, sticky=tkinter.W)
         self.xyLogButton.bind('<Return>', self._logXyMouseInfo)
 
-        # WIDGETS ON ROW 3:
+        # WIDGETS ON ROW 4:
 
         # Set up the RGB color text field and label:
         self.rgbSV_entry = ttk.Entry(mainframe, width=16, textvariable=self.rgbSV)
-        self.rgbSV_entry.grid(column=2, row=3, sticky=(tkinter.W, tkinter.E))
+        self.rgbSV_entry.grid(column=2, row=4, sticky=(tkinter.W, tkinter.E))
         ttk.Label(mainframe, text='RGB Color').grid(column=1, row=3, sticky=tkinter.W)
 
         # Set up the button to copy the RGB color to the clipboard:
         self.rgbCopyButtonSV = tkinter.StringVar()
         self.rgbCopyButtonSV.set('Copy RGB')
         self.rgbCopyButton = ttk.Button(mainframe, textvariable=self.rgbCopyButtonSV, width=MOUSE_INFO_BUTTON_WIDTH, command=self._copyRgbMouseInfo)
-        self.rgbCopyButton.grid(column=3, row=3, sticky=tkinter.W)
+        self.rgbCopyButton.grid(column=3, row=4, sticky=tkinter.W)
         self.rgbCopyButton.bind('<Return>', self._copyRgbMouseInfo)
 
         # Set up the button to log the XY coordinates:
         self.rgbLogButtonSV = tkinter.StringVar()
         self.rgbLogButtonSV.set('Log RGB')
         self.rgbLogButton = ttk.Button(mainframe, textvariable=self.rgbLogButtonSV, width=MOUSE_INFO_BUTTON_WIDTH, command=self._logRgbMouseInfo)
-        self.rgbLogButton.grid(column=4, row=3, sticky=tkinter.W)
+        self.rgbLogButton.grid(column=4, row=4, sticky=tkinter.W)
         self.rgbLogButton.bind('<Return>', self._logRgbMouseInfo)
 
-        # WIDGETS ON ROW 4:
+        # WIDGETS ON ROW 5:
 
         # Set up the RGB hex color text field and label:
         self.rgbHexSV_entry = ttk.Entry(mainframe, width=16, textvariable=self.rgbHexSV)
-        self.rgbHexSV_entry.grid(column=2, row=4, sticky=(tkinter.W, tkinter.E))
+        self.rgbHexSV_entry.grid(column=2, row=5, sticky=(tkinter.W, tkinter.E))
         ttk.Label(mainframe, text='RGB As Hex').grid(column=1, row=4, sticky=tkinter.W)
 
         # Set up the button to copy the RGB hex color to the clipboard:
         self.rgbHexCopyButtonSV = tkinter.StringVar()
         self.rgbHexCopyButtonSV.set('Copy RGB Hex')
         self.rgbHexCopyButton = ttk.Button(mainframe, textvariable=self.rgbHexCopyButtonSV, width=MOUSE_INFO_BUTTON_WIDTH, command=self._copyRgbHexMouseInfo)
-        self.rgbHexCopyButton.grid(column=3, row=4, sticky=tkinter.W)
+        self.rgbHexCopyButton.grid(column=3, row=5, sticky=tkinter.W)
         self.rgbHexCopyButton.bind('<Return>', self._copyRgbHexMouseInfo)
 
         # Set up the button to log the XY coordinates:
         self.rgbHexLogButtonSV = tkinter.StringVar()
         self.rgbHexLogButtonSV.set('Log RGB Hex')
         self.rgbHexLogButton = ttk.Button(mainframe, textvariable=self.rgbHexLogButtonSV, width=MOUSE_INFO_BUTTON_WIDTH, command=self._logRgbHexMouseInfo)
-        self.rgbHexLogButton.grid(column=4, row=4, sticky=tkinter.W)
+        self.rgbHexLogButton.grid(column=4, row=5, sticky=tkinter.W)
         self.rgbHexLogButton.bind('<Return>', self._logRgbHexMouseInfo)
 
-        # WIDGETS ON ROW 5:
+        # WIDGETS ON ROW 6:
 
         # Set up the frame that displays the color of the pixel currently under the mouse cursor:
         self.colorFrame = tkinter.Frame(mainframe, width=50, height=50)
-        self.colorFrame.grid(column=2, row=5, sticky=(tkinter.W, tkinter.E))
+        self.colorFrame.grid(column=2, row=6, sticky=(tkinter.W, tkinter.E))
         ttk.Label(mainframe, text='Color').grid(column=1, row=5, sticky=tkinter.W)
 
-        # WIDGETS ON ROW 6:
+        # WIDGETS ON ROW 7:
 
         # Set up the XY origin text field and label:
         self.xOrigin = 0
@@ -654,48 +668,48 @@ class MouseInfoWindow:
         ttk.Label(mainframe, text='XY Origin').grid(column=1, row=6, sticky=tkinter.W)
         self.xyOriginSV.trace("w", lambda name, index, mode, sv=self.xyOriginSV: self._xyOriginChanged(sv))
         self.xyOriginSV_entry = ttk.Entry(mainframe, width=16, textvariable=self.xyOriginSV)
-        self.xyOriginSV_entry.grid(column=2, row=6, sticky=(tkinter.W, tkinter.E))
+        self.xyOriginSV_entry.grid(column=2, row=7, sticky=(tkinter.W, tkinter.E))
 
         # Set up the button to set the XY origin:
         self.xyOriginSetButtonSV = tkinter.StringVar()
         self.xyOriginSetButtonSV.set('Set XY Origin')
         self.xyOriginSetButton = ttk.Button(mainframe, textvariable=self.xyOriginSetButtonSV, width=MOUSE_INFO_BUTTON_WIDTH, command=self._setXyOrigin)
-        self.xyOriginSetButton.grid(column=3, row=6, sticky=tkinter.W)
+        self.xyOriginSetButton.grid(column=3, row=7, sticky=tkinter.W)
         self.xyOriginSetButton.bind('<Return>', self._setXyOrigin)
 
         # Set up the button to reset the XY origin to 0, 0:
         self.xyOriginResetButton = ttk.Button(mainframe, text='Reset XY Origin', width=MOUSE_INFO_BUTTON_WIDTH, command=self._resetXyOrigin)
-        self.xyOriginResetButton.grid(column=4, row=6, sticky=tkinter.W)
+        self.xyOriginResetButton.grid(column=4, row=7, sticky=tkinter.W)
         self.xyOriginResetButton.bind('<Return>', self._resetXyOrigin)
 
-        # WIDGETS ON ROW 7:
+        # WIDGETS ON ROW 8:
 
         # Set up the multiline text widget where the log info appears:
         self.logTextarea = tkinter.Text(mainframe, width=20, height=6)
-        self.logTextarea.grid(column=1, row=7, columnspan=4, sticky=(tkinter.W, tkinter.E, tkinter.N, tkinter.S))
+        self.logTextarea.grid(column=1, row=8, columnspan=4, sticky=(tkinter.W, tkinter.E, tkinter.N, tkinter.S))
         self.logTextareaScrollbar = ttk.Scrollbar(mainframe, orient=tkinter.VERTICAL, command=self.logTextarea.yview)
-        self.logTextareaScrollbar.grid(column=5, row=7, sticky=(tkinter.N, tkinter.S))
+        self.logTextareaScrollbar.grid(column=5, row=8, sticky=(tkinter.N, tkinter.S))
         self.logTextarea['yscrollcommand'] = self.logTextareaScrollbar.set
 
-        # WIDGETS ON ROW 8:
+        # WIDGETS ON ROW 9:
         self.logFilenameTextbox = ttk.Entry(mainframe, width=16, textvariable=self.logFilenameSV)
-        self.logFilenameTextbox.grid(column=1, row=8, columnspan=3, sticky=(tkinter.W, tkinter.E))
+        self.logFilenameTextbox.grid(column=1, row=9, columnspan=3, sticky=(tkinter.W, tkinter.E))
         self.saveLogButton = ttk.Button(mainframe, text='Save Log', width=MOUSE_INFO_BUTTON_WIDTH, command=self._saveLogFile)
-        self.saveLogButton.grid(column=4, row=8, sticky=tkinter.W)
+        self.saveLogButton.grid(column=4, row=9, sticky=tkinter.W)
         self.saveLogButton.bind('<Return>', self._saveLogFile)
         self.logFilenameSV.set(os.path.join(os.getcwd(), 'mouseInfoLog.txt'))
 
-        # WIDGETS ON ROW 9:
+        # WIDGETS ON ROW 10:
         G_MOUSE_INFO_SCREENSHOT_FILENAME_entry = ttk.Entry(mainframe, width=16, textvariable=self.screenshotFilenameSV)
-        G_MOUSE_INFO_SCREENSHOT_FILENAME_entry.grid(column=1, row=9, columnspan=3, sticky=(tkinter.W, tkinter.E))
+        G_MOUSE_INFO_SCREENSHOT_FILENAME_entry.grid(column=1, row=10, columnspan=3, sticky=(tkinter.W, tkinter.E))
         self.saveScreenshotButton = ttk.Button(mainframe, text='Save Screenshot', width=MOUSE_INFO_BUTTON_WIDTH, command=self._saveScreenshotFile)
-        self.saveScreenshotButton.grid(column=4, row=9, sticky=tkinter.W)
+        self.saveScreenshotButton.grid(column=4, row=10, sticky=tkinter.W)
         self.saveScreenshotButton.bind('<Return>', self._saveScreenshotFile)
         self.screenshotFilenameSV.set(os.path.join(os.getcwd(), 'mouseInfoScreenshot.png'))
 
-        # WIDGETS ON ROW 10:
+        # WIDGETS ON ROW 11:
         statusbar = ttk.Label(mainframe, relief=tkinter.SUNKEN, textvariable=self.statusbarSV)
-        statusbar.grid(column=1, row=10, columnspan=5, sticky=(tkinter.W, tkinter.E))
+        statusbar.grid(column=1, row=11, columnspan=5, sticky=(tkinter.W, tkinter.E))
 
         # Add padding to all of the widgets:
         for child in mainframe.winfo_children():
