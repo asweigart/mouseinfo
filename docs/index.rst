@@ -47,6 +47,9 @@ You can also run MouseInfo from the Python interactive shell:
     >>> import mouseinfo
     >>> mouseinfo.MouseInfoWindow()
 
+.. figure:: mouseInfoApp.png
+    :align: center
+
 After the MouseInfo window appears, try the following:
 
 #. Move the mouse cursor around. Notice how the information in the XY Position, RGB Color, and RGB As Hex text fields change, as well as the colored rectangle.
@@ -76,12 +79,6 @@ After the MouseInfo window appears, try the following:
 
 Buttons
 -------
-
-The app looks like this:
-
-TODO: Screenshot.
-
-* **mouseinfo.readthedocs.io Link** - A clickable link to this documentation.
 
 * **3 Sec. Button Delay** - If checked, the copy and log buttons have a 3 second delay to let you position the mouse before the mouse information is copied or logged.
 
