@@ -15,7 +15,7 @@ Features that have been considered and rejected:
 * The button delay should be configurable instead of just set to 3 seconds.
 """
 
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 import pyperclip, sys, os, platform
 
 # =========================================================================
