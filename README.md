@@ -1,7 +1,9 @@
 MouseInfo
 ======
 
-An application to display XY position and RGB color information for the pixel currently under the mouse. Works on Python 2 and 3.
+An application to display XY position and RGB color information for the pixel currently under the mouse. Works on Python 2 and 3. This is useful for GUI automation planning.
+
+The full documentation is at https://mouseinfo.readthedocs.io/en/latest/
 
 Installation
 ------------
