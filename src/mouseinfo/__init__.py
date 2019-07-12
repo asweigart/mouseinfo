@@ -15,7 +15,7 @@ Features that have been considered and rejected:
 * The button delay should be configurable instead of just set to 3 seconds.
 """
 
-__version__ = '0.0.3'
+__version__ = '0.0.4'
 import pyperclip, sys, os, platform, webbrowser
 
 # =========================================================================
@@ -32,6 +32,7 @@ import pyperclip, sys, os, platform, webbrowser
 import datetime, subprocess
 from PIL import Image
 
+
 if sys.platform == 'win32':
     import ctypes
     from PIL import ImageGrab
@@ -42,6 +43,7 @@ if sys.platform == 'win32':
     except AttributeError:
         pass # Windows XP doesn't support this, so just do nothing.
 
+    dc = ctypes.windll.user32.GetDC(0)
 
     class POINT(ctypes.Structure):
         _fields_ = [('x', ctypes.c_long),
@@ -69,6 +71,18 @@ if sys.platform == 'win32':
     def _winSize():
         return (ctypes.windll.user32.GetSystemMetrics(0), ctypes.windll.user32.GetSystemMetrics(1))
     size = _winSize
+
+    def _winGetPixel(x, y):
+        colorRef = ctypes.windll.gdi32.GetPixel(dc, x, y)  # A COLORREF value as 0x00bbggrr. See https://docs.microsoft.com/en-us/windows/win32/gdi/colorref
+        red = colorRef % 256
+        colorRef //= 256
+        green = colorRef % 256
+        colorRef //= 256
+        blue = colorRef
+
+        return (red, green, blue)
+    getPixel = _winGetPixel
+
 
 elif sys.platform == 'darwin':
     try:
@@ -102,6 +116,12 @@ elif sys.platform == 'darwin':
     def _macSize():
         return Quartz.CGDisplayPixelsWide(Quartz.CGMainDisplayID()), Quartz.CGDisplayPixelsHigh(Quartz.CGMainDisplayID())
     size = _macSize
+
+    def _macGetPixel(x, y):
+        rgbValue = screenshot().getpixel((x, y))
+        return rgbValue[0], rgbValue[1], rgbValue[2]
+    getPixel = _macGetPixel
+
 
 elif platform.system() == 'Linux':
     from Xlib.display import Display
@@ -153,6 +173,11 @@ elif platform.system() == 'Linux':
     def _linuxSize():
         return _display.screen().width_in_pixels, _display.screen().height_in_pixels
     size = _linuxSize
+
+    def _linuxGetPixel(x, y):
+        rgbValue = screenshot().getpixel((x, y))
+        return rgbValue[0], rgbValue[1], rgbValue[2]
+    getPixel = _linuxGetPixel
 # =========================================================================
 
 RUNNING_PYTHON_2 = sys.version_info[0] == 2
@@ -207,8 +232,9 @@ class MouseInfoWindow:
         else:
             # Get the RGB color value of the pixel currently under the mouse:
             # NOTE: On Windows & Linux, getpixel() returns a 3-integer tuple, but on macOS it returns a 4-integer tuple.
-            rgbValue = screenshot().getpixel((x, y))
-            r, g, b, = rgbValue[0], rgbValue[1], rgbValue[2]
+            #rgbValue = screenshot().getpixel((x, y))
+            #r, g, b, = rgbValue[0], rgbValue[1], rgbValue[2]
+            r, g, b = getPixel(x, y)
             self.rgbSV.set('%s,%s,%s' % (r, g, b))
 
         if sys.platform == 'darwin':
