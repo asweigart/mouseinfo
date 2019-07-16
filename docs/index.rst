@@ -96,13 +96,13 @@ Buttons
 
 * **Log RGB** - Log the RGB color values of the pixel under mouse cursor's current position, e.g. ``52,99,159``. to the log text field If the *3 Sec. Button Delay* checkbox is checked, the information will be logged after a 3 second delay.
 
-* **Copy RGB as Hex** - Copy the XY hex coordinates of the mouse cursor's current position, e.g. ``#34639F``. If the *3 Sec. Button Delay* checkbox is checked, the information will be copied after a 3 second delay.
+* **Copy RGB Hex** - Copy the XY hex coordinates of the mouse cursor's current position, e.g. ``#34639F``. If the *3 Sec. Button Delay* checkbox is checked, the information will be copied after a 3 second delay.
 
-* **Log RGB as Hex** - Log the RGB color hex values of the pixel under mouse cursor's current position, e.g. ``#34639F`` to the log text field. If the *3 Sec. Button Delay* checkbox is checked, the information will be logged after a 3 second delay.
+* **Log RGB Hex** - Log the RGB color hex values of the pixel under mouse cursor's current position, e.g. ``#34639F`` to the log text field. If the *3 Sec. Button Delay* checkbox is checked, the information will be logged after a 3 second delay.
 
 * **Color** - A colored box that shows the current color in the *RGB Color* and *RGB as Hex* fields.
 
-* **XY Origin** - An XY coordinate for the origin that the coordinates in the *XY Position* field are relative to.
+* **XY Origin** - An XY coordinate for the origin that the coordinates in the *XY Position* field are relative to. This is useful if you want to find XY coordinates inside a particular window by setting the XY origin to the window's top left corner.
 
 * **Save Log** - Saves the contents of the log text field to the filename in the text field to the left. (This filename is *mouseInfoLog.txt* by default.)
 
