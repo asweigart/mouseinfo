@@ -15,7 +15,7 @@ Features that have been considered and rejected:
 * The button delay should be configurable instead of just set to 3 seconds.
 """
 
-__version__ = '0.0.4'
+__version__ = '0.1.0'
 import pyperclip, sys, os, platform, webbrowser
 
 # =========================================================================
@@ -30,14 +30,14 @@ import pyperclip, sys, os, platform, webbrowser
 # by copying the code for the position() and screenshot() functions into this
 # source code file.
 import datetime, subprocess
-from PIL import Image
 
+from PIL import Image
 
 if sys.platform == 'win32':
     import ctypes
     from PIL import ImageGrab
 
-    # Fixes the scaling issues where PyAutoGUI was reporting the wrong resolution:
+    # Makes this process aware of monitor scaling so the screenshots are correctly sized:
     try:
        ctypes.windll.user32.SetProcessDPIAware()
     except AttributeError:
@@ -210,7 +210,7 @@ else:
         from tkinter import ttk
         from tkinter import Event
 
-MOUSE_INFO_BUTTON_WIDTH = 14 # A standard width for the buttons in the MouseInfo window.
+MOUSE_INFO_BUTTON_WIDTH = 16 # A standard width for the buttons in the MouseInfo window.
 
 class MouseInfoWindow:
     def _updateMouseInfoTextFields(self):
@@ -232,8 +232,6 @@ class MouseInfoWindow:
         else:
             # Get the RGB color value of the pixel currently under the mouse:
             # NOTE: On Windows & Linux, getpixel() returns a 3-integer tuple, but on macOS it returns a 4-integer tuple.
-            #rgbValue = screenshot().getpixel((x, y))
-            #r, g, b, = rgbValue[0], rgbValue[1], rgbValue[2]
             r, g, b = getPixel(x, y)
             self.rgbSV.set('%s,%s,%s' % (r, g, b))
 
@@ -544,6 +542,7 @@ class MouseInfoWindow:
     def _saveScreenshotFile(self, *args):
         # Saves a screenshot. Automatically overwrites the file if it exists.
         # Displays an error message in the status bar if there is a problem.
+
         try:
             screenshot(self.screenshotFilenameSV.get())
         except Exception as e:
@@ -586,14 +585,14 @@ class MouseInfoWindow:
 
         # Set up the button to copy the XY coordinates to the clipboard:
         self.allCopyButtonSV = tkinter.StringVar()
-        self.allCopyButtonSV.set('Copy All')
+        self.allCopyButtonSV.set('Copy All (F1)')
         self.allCopyButton = ttk.Button(mainframe, textvariable=self.allCopyButtonSV, width=MOUSE_INFO_BUTTON_WIDTH, command=self._copyAllMouseInfo)
         self.allCopyButton.grid(column=3, row=CUR_ROW, sticky=tkinter.W)
         self.allCopyButton.bind('<Return>', self._copyAllMouseInfo)
 
         # Set up the button to copy the XY coordinates to the clipboard:
         self.allLogButtonSV = tkinter.StringVar()
-        self.allLogButtonSV.set('Log All')
+        self.allLogButtonSV.set('Log All (F5)')
         self.allLogButton = ttk.Button(mainframe, textvariable=self.allLogButtonSV, width=MOUSE_INFO_BUTTON_WIDTH, command=self._logAllMouseInfo)
         self.allLogButton.grid(column=4, row=CUR_ROW, sticky=tkinter.W)
         self.allLogButton.bind('<Return>', self._logAllMouseInfo)
@@ -618,14 +617,14 @@ class MouseInfoWindow:
 
         # Set up the button to copy the XY coordinates to the clipboard:
         self.xyCopyButtonSV = tkinter.StringVar()
-        self.xyCopyButtonSV.set('Copy XY')
+        self.xyCopyButtonSV.set('Copy XY (F2)')
         self.xyCopyButton = ttk.Button(mainframe, textvariable=self.xyCopyButtonSV, width=MOUSE_INFO_BUTTON_WIDTH, command=self._copyXyMouseInfo)
         self.xyCopyButton.grid(column=3, row=CUR_ROW, sticky=tkinter.W)
         self.xyCopyButton.bind('<Return>', self._copyXyMouseInfo)
 
         # Set up the button to log the XY coordinates:
         self.xyLogButtonSV = tkinter.StringVar()
-        self.xyLogButtonSV.set('Log XY')
+        self.xyLogButtonSV.set('Log XY (F6)')
         self.xyLogButton = ttk.Button(mainframe, textvariable=self.xyLogButtonSV, width=MOUSE_INFO_BUTTON_WIDTH, command=self._logXyMouseInfo)
         self.xyLogButton.grid(column=4, row=CUR_ROW, sticky=tkinter.W)
         self.xyLogButton.bind('<Return>', self._logXyMouseInfo)
@@ -640,14 +639,14 @@ class MouseInfoWindow:
 
         # Set up the button to copy the RGB color to the clipboard:
         self.rgbCopyButtonSV = tkinter.StringVar()
-        self.rgbCopyButtonSV.set('Copy RGB')
+        self.rgbCopyButtonSV.set('Copy RGB (F3)')
         self.rgbCopyButton = ttk.Button(mainframe, textvariable=self.rgbCopyButtonSV, width=MOUSE_INFO_BUTTON_WIDTH, command=self._copyRgbMouseInfo)
         self.rgbCopyButton.grid(column=3, row=CUR_ROW, sticky=tkinter.W)
         self.rgbCopyButton.bind('<Return>', self._copyRgbMouseInfo)
 
         # Set up the button to log the XY coordinates:
         self.rgbLogButtonSV = tkinter.StringVar()
-        self.rgbLogButtonSV.set('Log RGB')
+        self.rgbLogButtonSV.set('Log RGB (F7)')
         self.rgbLogButton = ttk.Button(mainframe, textvariable=self.rgbLogButtonSV, width=MOUSE_INFO_BUTTON_WIDTH, command=self._logRgbMouseInfo)
         self.rgbLogButton.grid(column=4, row=CUR_ROW, sticky=tkinter.W)
         self.rgbLogButton.bind('<Return>', self._logRgbMouseInfo)
@@ -662,14 +661,14 @@ class MouseInfoWindow:
 
         # Set up the button to copy the RGB hex color to the clipboard:
         self.rgbHexCopyButtonSV = tkinter.StringVar()
-        self.rgbHexCopyButtonSV.set('Copy RGB Hex')
+        self.rgbHexCopyButtonSV.set('Copy RGB Hex (F4)')
         self.rgbHexCopyButton = ttk.Button(mainframe, textvariable=self.rgbHexCopyButtonSV, width=MOUSE_INFO_BUTTON_WIDTH, command=self._copyRgbHexMouseInfo)
         self.rgbHexCopyButton.grid(column=3, row=CUR_ROW, sticky=tkinter.W)
         self.rgbHexCopyButton.bind('<Return>', self._copyRgbHexMouseInfo)
 
         # Set up the button to log the XY coordinates:
         self.rgbHexLogButtonSV = tkinter.StringVar()
-        self.rgbHexLogButtonSV.set('Log RGB Hex')
+        self.rgbHexLogButtonSV.set('Log RGB Hex (F8)')
         self.rgbHexLogButton = ttk.Button(mainframe, textvariable=self.rgbHexLogButtonSV, width=MOUSE_INFO_BUTTON_WIDTH, command=self._logRgbHexMouseInfo)
         self.rgbHexLogButton.grid(column=4, row=CUR_ROW, sticky=tkinter.W)
         self.rgbHexLogButton.bind('<Return>', self._logRgbHexMouseInfo)

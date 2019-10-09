@@ -1,13 +1,19 @@
-import re, io
+import io
+import os
+import re
 from setuptools import setup, find_packages
 
-# Load version from module (without loading the whole module)
+scriptFolder = os.path.dirname(os.path.realpath(__file__))
+os.chdir(scriptFolder)
+
+# Find version info from module (without importing the module):
 with open('src/mouseinfo/__init__.py', 'r') as fo:
     version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
                         fo.read(), re.MULTILINE).group(1)
 
-# Read in the README.md for the long description.
-with io.open('README.md', encoding='utf-8') as fo:
+# Use the README.md content for the long description:
+readmeFilename = os.path.join(scriptFolder, 'README.md')
+with io.open(readmeFilename, encoding='utf-8') as fo:
     long_description = fo.read()
 
 setup(
@@ -33,11 +39,9 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8'
     ],
 )
