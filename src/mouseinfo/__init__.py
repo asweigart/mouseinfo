@@ -15,7 +15,7 @@ Features that have been considered and rejected:
 * The button delay should be configurable instead of just set to 3 seconds.
 """
 
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 import pyperclip, sys, os, platform, webbrowser
 
 # =========================================================================
@@ -812,6 +812,16 @@ class MouseInfoWindow:
             self.root.destroy()
         except tkinter.TclError:
             pass
+
+def mouseInfo():
+    """
+    Launch the MouseInfo application in a new window.
+
+    This exists as a shortcut instead of running MouseInfoWindow() because
+    PyAutoGUI (which imports mouseinfo) is set up with a simple mouseInfo()
+    function and I'd like to keep this consistent with that.
+    """
+    MouseInfoWindow()
 
 if __name__ == '__main__':
     MouseInfoWindow()
