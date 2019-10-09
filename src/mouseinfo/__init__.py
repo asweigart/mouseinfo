@@ -31,11 +31,17 @@ import pyperclip, sys, os, platform, webbrowser
 # source code file.
 import datetime, subprocess
 
-from PIL import Image
+try:
+    from PIL import Image
+    _PILLOW_INSTALLED = True
+except ImportError:
+    _PILLOW_INSTALLED = False
 
 if sys.platform == 'win32':
     import ctypes
-    from PIL import ImageGrab
+
+    if _PILLOW_INSTALLED:
+        from PIL import ImageGrab
 
     # Makes this process aware of monitor scaling so the screenshots are correctly sized:
     try:
@@ -224,18 +230,22 @@ class MouseInfoWindow:
         # support multi-monitor setups. The color information isn't reliable
         # when the mouse is not on the primary monitor, so display an error instead.
         width, height = size()
-        if sys.platform == 'darwin':
+        if not _PILLOW_INSTALLED:
+            self.rgbSV.set('NA_Pillow_unsupported')
+        elif sys.platform == 'darwin':
             # TODO - Until I can get screenshots without the mouse cursor, this feature doesn't work on mac.
             self.rgbSV.set('NA_on_macOS')
         elif not (0 <= x < width and 0 <= y < height):
             self.rgbSV.set('NA_on_multimonitor_setups')
         else:
             # Get the RGB color value of the pixel currently under the mouse:
-            # NOTE: On Windows & Linux, getpixel() returns a 3-integer tuple, but on macOS it returns a 4-integer tuple.
+            # NOTE: On Windows & Linux, Pillow's getpixel() returns a 3-integer tuple, but on macOS it returns a 4-integer tuple.
             r, g, b = getPixel(x, y)
             self.rgbSV.set('%s,%s,%s' % (r, g, b))
 
-        if sys.platform == 'darwin':
+        if not _PILLOW_INSTALLED:
+            self.rgbHexSV.set('NA_Pillow_unsupported')
+        elif sys.platform == 'darwin':
             # TODO - Until I can get screenshots without the mouse cursor, this feature doesn't work on mac.
             self.rgbHexSV.set('NA_on_macOS')
         elif not (0 <= x < width and 0 <= y < height):
@@ -248,7 +258,7 @@ class MouseInfoWindow:
             hexColor = '#%s%s%s' % (rHex, gHex, bHex)
             self.rgbHexSV.set(hexColor)
 
-        if (sys.platform == 'darwin') or (not (0 <= x < width and 0 <= y < height)):
+        if (not _PILLOW_INSTALLED) or (sys.platform == 'darwin') or (not (0 <= x < width and 0 <= y < height)):
             self.colorFrame.configure(background='black')
         else:
             # Update the color panel:
@@ -542,6 +552,10 @@ class MouseInfoWindow:
     def _saveScreenshotFile(self, *args):
         # Saves a screenshot. Automatically overwrites the file if it exists.
         # Displays an error message in the status bar if there is a problem.
+
+        if not _PILLOW_INSTALLED:
+            self.statusbarSV.set('ERROR: NA_Pillow_unsupported')
+            return
 
         try:
             screenshot(self.screenshotFilenameSV.get())

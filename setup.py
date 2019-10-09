@@ -7,14 +7,14 @@ scriptFolder = os.path.dirname(os.path.realpath(__file__))
 os.chdir(scriptFolder)
 
 # Find version info from module (without importing the module):
-with open('src/mouseinfo/__init__.py', 'r') as fo:
+with open('src/mouseinfo/__init__.py', 'r') as fileObj:
     version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
-                        fo.read(), re.MULTILINE).group(1)
+                        fileObj.read(), re.MULTILINE).group(1)
 
 # Use the README.md content for the long description:
 readmeFilename = os.path.join(scriptFolder, 'README.md')
-with io.open(readmeFilename, encoding='utf-8') as fo:
-    long_description = fo.read()
+with io.open(readmeFilename, encoding='utf-8') as fileObj:
+    long_description = fileObj.read()
 
 setup(
     name='MouseInfo',
@@ -29,9 +29,10 @@ setup(
     packages=find_packages(where='src'),
     package_dir={'': 'src'},
     test_suite='tests',
+    # NOTE: Update the python_version info for Pillow as Pillow supports later versions of Python.
     install_requires=['pyobjc-core;platform_system=="Darwin"', 'pyobjc;platform_system=="Darwin"',
                       'python3-Xlib;platform_system=="Linux" and python_version>="3.0"', 'Xlib;platform_system=="Linux" and python_version<"3.0"',
-                      'Pillow', 'pyperclip'],
+                      'Pillow;python_version=="2.7" or python_version>="3.5" and python_version<="3.7"', 'pyperclip'],
     keywords='',
     classifiers=[
         'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
