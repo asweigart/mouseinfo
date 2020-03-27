@@ -15,7 +15,7 @@ Features that have been considered and rejected:
 * The button delay should be configurable instead of just set to 3 seconds.
 """
 
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 import pyperclip, sys, os, platform, webbrowser
 
 #from enum import Enum
