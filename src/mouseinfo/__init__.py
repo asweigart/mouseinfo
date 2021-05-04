@@ -1,7 +1,3 @@
-from pyautogui import *
-# https://del.dog/apetakifin
-
-
 # MouseInfo by Al Sweigart al@inventwithpython.com
 
 # Note: how to specify where a tkintr window opens:
