@@ -36,7 +36,7 @@ from ctypes import (
 # by copying the code for the position() and screenshot() functions into this
 # source code file.
 import datetime, subprocess
-
+import platform
 try:
     from PIL import Image
     _PILLOW_INSTALLED = True
@@ -262,6 +262,12 @@ elif platform.system() == 'Linux':
 
 RUNNING_PYTHON_2 = sys.version_info[0] == 2
 
+cond==platform.platform().split('-')[3]=='MANJARO'
+EXIT_MSG='NOTE: You must install tkinter on Linux to use MouseInfo. Run the following: '
+if cond:
+	EXIT_MSG='pacman -S tk'
+else:	
+	EXIT_MSG='sudo apt-get install python-tk python-dev'
 if platform.system() == 'Linux':
     if RUNNING_PYTHON_2:
         try:
@@ -269,7 +275,7 @@ if platform.system() == 'Linux':
             ttk = tkinter
             from Tkinter import Event
         except ImportError:
-            sys.exit('NOTE: You must install tkinter on Linux to use MouseInfo. Run the following: sudo apt-get install python-tk python-dev')
+            sys.exit(EXIT_MSG)
     else:
         # Running Python 3+:
         try:
@@ -277,7 +283,7 @@ if platform.system() == 'Linux':
             from tkinter import ttk
             from tkinter import Event
         except ImportError:
-            sys.exit('NOTE: You must install tkinter on Linux to use MouseInfo. Run the following: sudo apt-get install python3-tk python3-dev')
+            sys.exit(EXIT_MSG)
 else:
     # Running Windows or macOS:
     if RUNNING_PYTHON_2:
