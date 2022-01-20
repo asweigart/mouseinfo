@@ -386,7 +386,7 @@ class MouseInfoWindow:
         else:
             # Delay disabled or countdown has finished:
             self._copyText(self.xyTextboxSV.get())
-            self.xyCopyButtonSV.set('Copy XY')
+            self.xyCopyButtonSV.set('Copy XY (F2)')
 
 
     def _copyRgbMouseInfo(self, *args):
@@ -411,7 +411,7 @@ class MouseInfoWindow:
         else:
             # Delay disabled or countdown has finished:
             self._copyText(self.rgbSV.get())
-            self.rgbCopyButtonSV.set('Copy RGB')
+            self.rgbCopyButtonSV.set('Copy RGB (F3)')
 
 
     def _copyRgbHexMouseInfo(self, *args):
@@ -436,7 +436,7 @@ class MouseInfoWindow:
         else:
             # Delay disabled or countdown has finished:
             self._copyText(self.rgbHexSV.get())
-            self.rgbHexCopyButtonSV.set('Copy RGB Hex')
+            self.rgbHexCopyButtonSV.set('Copy RGB Hex (F4)')
 
 
     def _copyAllMouseInfo(self, *args):
@@ -468,7 +468,7 @@ class MouseInfoWindow:
                                               self.rgbSV.get(),
                                               self.rgbHexSV.get())
             self._copyText(textFieldContents)
-            self.allCopyButtonSV.set('Copy All')
+            self.allCopyButtonSV.set('Copy All (F1)')
 
 
     def _logXyMouseInfo(self, *args):
@@ -496,7 +496,7 @@ class MouseInfoWindow:
             self.logTextboxSV.set(logContents)
             self._setLogTextAreaContents(logContents)
             self.statusbarSV.set('Logged ' + self.xyTextboxSV.get())
-            self.xyLogButtonSV.set('Log XY')
+            self.xyLogButtonSV.set('Log XY (F6)')
 
 
     def _logRgbMouseInfo(self, *args):
@@ -524,7 +524,7 @@ class MouseInfoWindow:
             self.logTextboxSV.set(logContents)
             self._setLogTextAreaContents(logContents)
             self.statusbarSV.set('Logged ' + self.rgbSV.get())
-            self.rgbLogButtonSV.set('Log RGB')
+            self.rgbLogButtonSV.set('Log RGB (F7)')
 
 
     def _logRgbHexMouseInfo(self, *args):
@@ -552,7 +552,7 @@ class MouseInfoWindow:
             self.logTextboxSV.set(logContents)
             self._setLogTextAreaContents(logContents)
             self.statusbarSV.set('Logged ' + self.rgbHexSV.get())
-            self.rgbHexLogButtonSV.set('Log RGB Hex')
+            self.rgbHexLogButtonSV.set('Log RGB Hex (F8)')
 
 
     def _logAllMouseInfo(self, *args):
@@ -583,7 +583,7 @@ class MouseInfoWindow:
             self.logTextboxSV.set(logContents)
             self._setLogTextAreaContents(logContents)
             self.statusbarSV.set('Logged ' + textFieldContents)
-            self.allLogButtonSV.set('Log All')
+            self.allLogButtonSV.set('Log All (F5)')
 
     def _xyOriginChanged(self, sv):
         contents = sv.get()
