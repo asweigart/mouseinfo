@@ -31,9 +31,10 @@ setup(
     test_suite='tests',
     # NOTE: Update the python_version info for Pillow as Pillow supports later versions of Python.
     install_requires=['pyobjc-core;platform_system=="Darwin"',
-                      'pyobjc;platform_system=="Darwin"',
+                      'pyobjc-framework-quartz;platform_system=="Darwin"',
                       'python-Xlib;platform_system=="Linux"',
                       'pyperclip',
+                      'Pillow >= 6.2.1; python_version == "3.8"',
                       'Pillow >= 5.2.0; python_version == "3.7"',
                       'Pillow >= 4.0.0; python_version == "3.6"',
                       'Pillow >= 3.2.0; python_version == "3.5"',
@@ -55,5 +56,6 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
     ],
 )
