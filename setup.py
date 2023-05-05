@@ -35,6 +35,7 @@ setup(
                       'python3-Xlib;platform_system=="Linux" and python_version>="3.0"',
                       'Xlib;platform_system=="Linux" and python_version<"3.0"',
                       'pyperclip',
+                      'Pillow >= 6.2.1; python_version == "3.8"',
                       'Pillow >= 5.2.0; python_version == "3.7"',
                       'Pillow >= 4.0.0; python_version == "3.6"',
                       'Pillow >= 3.2.0; python_version == "3.5"',
@@ -56,5 +57,6 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
     ],
 )

@@ -40,3 +40,8 @@ Contribute
 ----------
 
 If you'd like to contribute to MouseInfo, check out https://github.com/asweigart/mouseinfo
+
+Support
+-------
+
+If you find this project helpful and would like to support its development, [consider donating to its creator on Patreon](https://www.patreon.com/AlSweigart).

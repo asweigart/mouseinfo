@@ -15,8 +15,14 @@ Features that have been considered and rejected:
 * The button delay should be configurable instead of just set to 3 seconds.
 """
 
-__version__ = '0.1.2'
+__version__ = '0.1.4'
 import pyperclip, sys, os, platform, webbrowser
+
+#from enum import Enum
+from ctypes import (
+    c_bool, c_int32, c_int64, c_size_t, c_uint16, c_uint32, c_void_p,
+    cdll, util,
+)
 
 # =========================================================================
 # Originally, these functions were pulled in from PyAutoGUI. However, to
@@ -91,15 +97,80 @@ if sys.platform == 'win32':
 
 
 elif sys.platform == 'darwin':
-    try:
-        import Quartz
-    except:
-        assert False, "You must first install pyobjc-core and pyobjc: https://pyautogui.readthedocs.io/en/latest/install.html"
-    import AppKit
+    from rubicon.objc import ObjCClass, CGPoint
+    from rubicon.objc.types import register_preferred_encoding
+
+    #####################################################################
+
+    appkit = cdll.LoadLibrary(util.find_library('AppKit'))
+
+    NSEvent = ObjCClass('NSEvent')
+    NSEvent.declare_class_property('mouseLocation')
+    # NSSystemDefined = ObjCClass('NSSystemDefined')
+
+    #####################################################################
+
+    core_graphics = cdll.LoadLibrary(util.find_library('CoreGraphics'))
+
+    CGDirectDisplayID = c_uint32
+
+    CGEventRef = c_void_p
+    register_preferred_encoding(b'^{__CGEvent=}', CGEventRef)
+
+    CGEventSourceRef = c_void_p
+    register_preferred_encoding(b'^{__CGEventSource=}', CGEventSourceRef)
+
+    CGEventTapLocation = c_uint32
+
+    CGEventType = c_uint32
+
+    CGEventField = c_uint32
+
+    CGKeyCode = c_uint16
+
+    CGMouseButton = c_uint32
+
+    CGScrollEventUnit = c_uint32
+
+    # size_t CGDisplayPixelsWide(CGDirectDisplayID display);
+    core_graphics.CGDisplayPixelsWide.argtypes = [CGDirectDisplayID]
+    core_graphics.CGDisplayPixelsWide.restype = c_size_t
+
+    # CGEventRef CGEventCreateKeyboardEvent(CGEventSourceRef source, CGKeyCode virtualKey, bool keyDown);
+    core_graphics.CGEventCreateKeyboardEvent.argtypes = [CGEventSourceRef, CGKeyCode, c_bool]
+    core_graphics.CGEventCreateKeyboardEvent.restype = CGEventRef
+
+    # CGEventRef CGEventCreateMouseEvent(
+    #   CGEventSourceRef source, CGEventType mouseType, CGPoint mouseCursorPosition, CGMouseButton mouseButton);
+    core_graphics.CGEventCreateMouseEvent.argtypes = [CGEventSourceRef, CGEventType, CGPoint, CGMouseButton]
+    core_graphics.CGEventCreateMouseEvent.restype = CGEventRef
+
+    # CGEventRef CGEventCreateScrollWheelEvent(
+    #   CGEventSourceRef source, CGScrollEventUnit units, uint32_t wheelCount, int32_t wheel1, ...);
+    core_graphics.CGEventCreateScrollWheelEvent.argtypes = [CGEventSourceRef, CGScrollEventUnit, c_uint32, c_int32]
+    core_graphics.CGEventCreateScrollWheelEvent.restype = CGEventRef
+
+    # void CGEventSetIntegerValueField(CGEventRef event, CGEventField field, int64_t value);
+    core_graphics.CGEventSetIntegerValueField.argtypes = [CGEventRef, CGEventField, c_int64]
+    core_graphics.CGEventSetIntegerValueField.restype = None
+
+    # void CGEventSetType(CGEventRef event, CGEventType type);
+    core_graphics.CGEventSetType.argtype = [CGEventRef, CGEventType]
+    core_graphics.CGEventSetType.restype = None
+
+    # void CGEventPost(CGEventTapLocation tap, CGEventRef event);
+    core_graphics.CGEventPost.argtypes = [CGEventTapLocation, CGEventRef]
+    core_graphics.CGEventPost.restype = None
+
+    # CGDirectDisplayID CGMainDisplayID(void);
+    core_graphics.CGMainDisplayID.argtypes = []
+    core_graphics.CGMainDisplayID.restype = CGDirectDisplayID
+
+
 
     def _macPosition():
-        loc = AppKit.NSEvent.mouseLocation()
-        return int(loc.x), int(Quartz.CGDisplayPixelsHigh(0) - loc.y)
+        loc = NSEvent.mouseLocation
+        return int(loc.x), int(core_graphics.CGDisplayPixelsHigh(0) - loc.y)
     position = _macPosition
 
 
@@ -120,7 +191,10 @@ elif sys.platform == 'darwin':
     screenshot = _macScreenshot
 
     def _macSize():
-        return Quartz.CGDisplayPixelsWide(Quartz.CGMainDisplayID()), Quartz.CGDisplayPixelsHigh(Quartz.CGMainDisplayID())
+        return (
+            core_graphics.CGDisplayPixelsWide(core_graphics.CGMainDisplayID()),
+            core_graphics.CGDisplayPixelsHigh(core_graphics.CGMainDisplayID())
+        )
     size = _macSize
 
     def _macGetPixel(x, y):
