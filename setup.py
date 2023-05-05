@@ -30,7 +30,8 @@ setup(
     package_dir={'': 'src'},
     test_suite='tests',
     # NOTE: Update the python_version info for Pillow as Pillow supports later versions of Python.
-    install_requires=['rubicon-objc;platform_system=="Darwin"',
+    install_requires=['pyobjc-core;platform_system=="Darwin"',
+                      'pyobjc-framework-quartz;platform_system=="Darwin"',
                       'python3-Xlib;platform_system=="Linux" and python_version>="3.0"',
                       'Xlib;platform_system=="Linux" and python_version<"3.0"',
                       'pyperclip',
