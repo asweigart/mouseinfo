@@ -269,7 +269,7 @@ if platform.system() == 'Linux':
             ttk = tkinter
             from Tkinter import Event
         except ImportError:
-            sys.exit('NOTE: You must install tkinter on Linux to use MouseInfo. Run the following: sudo apt-get install python-tk python-dev')
+            raise ImportError('You must install tkinter on Linux to use MouseInfo. For Ubuntu Linux, run the following: sudo apt-get install python-tk python-dev')
     else:
         # Running Python 3+:
         try:
@@ -277,7 +277,7 @@ if platform.system() == 'Linux':
             from tkinter import ttk
             from tkinter import Event
         except ImportError:
-            sys.exit('NOTE: You must install tkinter on Linux to use MouseInfo. Run the following: sudo apt-get install python3-tk python3-dev')
+            raise ImportError('You must install tkinter on Linux to use MouseInfo. For Ubuntu Linux, run the following: sudo apt-get install python3-tk python3-dev')
 else:
     # Running Windows or macOS:
     if RUNNING_PYTHON_2:
